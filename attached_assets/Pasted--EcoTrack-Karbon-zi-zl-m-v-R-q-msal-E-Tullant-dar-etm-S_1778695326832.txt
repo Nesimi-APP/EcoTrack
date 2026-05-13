@@ -1,0 +1,130 @@
+ EcoTrack: Karbon İzi İzləmə və Rəqəmsal E-Tullantı İdarəetmə Sistemi
+
+## 🌿 Layihə Haqqında
+EcoTrack, universitet tələbələri və gənc mühəndislər tərəfindən dayanıqlı gələcək üçün hazırlanmış, "Yaşıl Texnologiyalar" və "Dairəvi İqtisadiyyat" prinsiplərinə əsaslanan innovativ mobil tətbiqdir. Tətbiq fərdi karbon emissiyalarını minimuma endirmək və elektron tullantıların idarə olunmasını rəqəmsallaşdırmaq məqsədi daşıyır.
+
+## 🎯 Yarışma Hədəfləri ilə Uyğunluq
+- **Yaşıl Texnologiyalar:** Karbon emissiyalarının monitorinqi üçün rəqəmsal ekosistem.
+- **E-Tullantıların İdarə olunması:** Köhnə cihazların təkrar emalı üçün loqistik xəritə həlli.
+- **Dayanıqlı Sənaye:** Sənaye standartlarına uyğun karbon hesablama metodologiyası.
+- **Startap Ekosistemi:** Ölçeklenebilir (scalable) biznes modeli və real bazar ehtiyacı.
+
+## ✨ Əsas Funksiyalar
+1. **Karbon Kalkulyatoru:** Nəqliyyat, ev enerjisi və qida vərdişlərinə əsaslanan dəqiq hesablama.
+2. **E-Tullantı Xəritəsi:** Elektron tullantı toplama nöqtələrinin GPS inteqrasiyası ilə göstərilməsi.
+3. **Yaşıl Hədəflər (Milestones):** Gündəlik və həftəlik karbon azaltma tapşırıqları.
+4. **AI Tövsiyə Mühərriki:** İstifadəçi vərdişlərinə görə fərdiləşdirilmiş eko-məsləhətlər.
+
+## 🛠 Texniki Arxitektura
+- **Framework:** React Native (Expo)
+- **UI/UX:** Material Design 3 (Google Stitch prinsipləri əsasında)
+- **State Management:** React Context API
+- **Data Source:** IPCC (Intergovernmental Panel on Climate Change) karbon əmsalları bazası.
+
+## 📅 5 Günlük Yol Xəritəsi (MVP)
+- **1. Gün:** Layihə strukturunun qurulması və UI Navigation.
+- **2. Gün:** Karbon hesablama alqoritmlərinin inteqrasiyası.
+- **3. Gün:** E-tullantı toplama məntəqələri üçün Map (Xəritə) modulu.
+- **4. Gün:** Google Material Design 3 stilində vizual optimizasiya.
+- **5. Gün:** Test, səhvlərin aradan qaldırılması və təqdimat videosunun hazırlanması.AI-ya kodu yazdırtmazdan əvvəl bunları quraşdırdığına əmin ol:
+react-native-paper (UI komponentləri üçün)
+
+react-native-reanimated və moti (Animasiyalar üçün)
+
+react-native-maps (Xəritə üçün)
+
+react-native-svg (Dairəvi qrafiklər üçün)
+
+1. Ana Səhifə (Dashboard) – Tətbiqin ürəyi
+İstifadəçini qarşılayan və ümumi vəziyyəti göstərən dinamik ekran.
+
+Hero Card: İstifadəçinin bu gün/ay üçün toplam karbon izi (Məsələn: "Bu ay 120 kq CO2"). Burada Circular Progress Bar animasiyası olmalıdır.
+
+Status Göstəricisi: Karbon izinin keçən həftəyə nisbətdə dəyişməsi (Məsələn: "↓ 5% daha az").
+
+Daily Tip (AI): AI tərəfindən hər gün yenilənən qısa eko-məsləhət (Məsələn: "Bu gün pilləkənlərdən istifadə etmək 0.2 kq CO2 qənaət etdi").
+
+Quick Action: "Hərəkət əlavə et" (Kalkulyatora sürətli keçid üçün Floating Action Button).
+
+2. Karbon Kalkulyatoru (Kalkulyator Ekranı)
+İstifadəçinin məlumat daxil etdiyi interaktiv hissə.
+
+Kateqoriya Seçimi: Nəqliyyat, Enerji, Qida (Material 3 Tab və ya Segmented Button).
+
+Dinamik Inputlar:
+
+Nəqliyyat: Getdiyin yol (km) və nəqliyyat növü seçimi.
+
+Enerji: Aylıq elektrik/qaz qəbzi məlumatları.
+
+Live Update: İstifadəçi rəqəmi daxil etdikcə aşağıda karbon miqdarının animasiya ilə artması.
+
+3. E-Tullantı Xəritəsi (Recycle Map)
+Elektron tullantıların idarə olunması modulunun əsas hissəsi.
+
+İnteraktiv Xəritə: Google Maps inteqrasiyası.
+
+Filtirlər: "Batareya", "Məişət texnikası", "Kompüter hissələri" kimi kateqoriyalar üzrə toplama məntəqələrini süzgəcdən keçirmək.
+
+Point Details: Seçilən nöqtəyə basdıqda: İş saatları, qəbul edilən tullantı növləri və "Yol tarifi al" düyməsi.
+
+4. Nailiyyətlər və Liderlik (Gamification)
+İstifadəçini motivasiya edən hissə.
+
+Badges: "İlk addım", "Yaşıl Çempion", "Tullantı Ovçusu" kimi qazanılmış nişanlar.
+
+Progress Tracking: İstifadəçinin bu günə qədər cəmi neçə ağac əkməyə bərabər fayda verdiyini göstərən vizual (Məsələn: "Siz 3 ağac xilas etmisiniz").
+
+5. Profil və Parametrlər
+User Info: Şəxsi məlumatlar və ümumi reytinq.
+
+Settings: Bildirişlər (məsələn: "E-tullantı toplama günü xatırlatması"), tətbiqin mövzusu (Dark/Light mode).
+
+🚀 Onboarding və Digər Vacib Səhifələr
+1. Onboarding Silsiləsi (3 Slaydlı Giriş)
+İstifadəçiyə tətbiqin məqsədini 15 saniyədə izah edən animasiyalı ekranlar.
+
+Slayd 1: "İzinizi Görün" – Karbon ayaq izini izləməyin vacibliyi haqqında qısa məlumat. Vizual: Dünyanı qucaqlayan insan animasiyası.
+
+Slayd 2: "Hərəkətə Keçin" – Gündəlik vərdişləri necə dəyişmək olar. Vizual: Velosiped sürən və ya ağac əkən insan.
+
+Slayd 3: "Tullantıları İdarə Edin" – E-tullantıların təbiətə zərərini minimuma endirmə yolu. Vizual: Köhnə batareyaların təkrar emal qutusuna atılması.
+
+UI Detalı: Alt hissədə "Get Started" düyməsi və sürüşdürülə bilən (swipeable) Material 3 nöqtələri (dots).
+
+2. E-Tullantı Təhvil Formu (Action Page)
+Xəritədən bir məntəqə seçdikdən sonra açılan və ya müstəqil istifadə olunan səhifə.
+
+Tullantı Növü Seçimi: (Məs: Laptop, Telefon, Batareya).
+
+Vəziyyət Təsviri: "İşləyir", "Təmiri mümkündür", "Tam yararsız".
+
+Təxmini Təsir: Bu cihazı təkrar emala verməklə nə qədər ağır metalın torpağa qarışmasının qarşısını aldığını göstərən məlumat (Məs: "Siz 500mq civənin qarşısını aldınız").
+
+3. Bildiriş Mərkəzi (Notifications)
+İstifadəçini aktiv saxlamaq üçün.
+
+Xatırlatmalar: "Bu gün karbon kalkulyatorunu yeniləməmisiniz!"
+
+Təbrik Mesajları: "Təbrikler! Bu həftə karbon izinizi 10% azaltdınız."
+
+E-Tullantı Aksiyaları: "Yaxınlığınızda yeni bir toplama məntəqəsi açıldı."
+
+4. Bilik Bazası (Eco-Wiki)
+Yaşıl texnologiyalar haqqında qısa, oxunaqlı məqalələr.
+
+Kateqoriyalar: "Bərpa olunan enerji", "Plastiksiz həyat", "E-tullantı nədir?".
+
+UI: Material 3 "List Items" ilə minimalist dizayn.Bu promptu AI-ya verərək onboarding kodunu ala bilərsən:
+
+"Create a high-end Onboarding Screen for React Native using react-native-reanimated and react-native-gesture-handler.
+
+It should have a Horizontal ScrollView (Paging).
+
+Each slide should have a Lottie animation at the top, a bold Title ('Product Sans' style), and a descriptive subtitle.
+
+Include a 'Skip' button in the top right and a 'Next/Finish' button at the bottom.
+
+Use Material 3 (Google Stitch) aesthetics: soft shadows, pastel green backgrounds, and smooth spring animations for the text entry.
+
+Make the background color transition smoothly (animate) as the user swipes between slides."Məsləhət: Onboarding-də Lottie animasiyaları istifadə etməkAI-dan kod alarkən mütləq "Lottie animasiyası üçün yer saxla" (placeholder for Lottie) de.
