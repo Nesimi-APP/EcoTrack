@@ -10,10 +10,20 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
-import { MONTHLY_TARGET_KG } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
 
-function BadgeCard({ badge }: { badge: { id: string; name: string; description: string; icon: string; color: string; earned: boolean } }) {
+function BadgeCard({
+  badge,
+}: {
+  badge: {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    earned: boolean;
+  };
+}) {
   const colors = useColors();
   return (
     <View
@@ -38,7 +48,12 @@ function BadgeCard({ badge }: { badge: { id: string; name: string; description: 
           color={badge.earned ? badge.color : colors.mutedForeground}
         />
       </View>
-      <Text style={[styles.badgeName, { color: badge.earned ? colors.foreground : colors.mutedForeground }]}>
+      <Text
+        style={[
+          styles.badgeName,
+          { color: badge.earned ? colors.foreground : colors.mutedForeground },
+        ]}
+      >
         {badge.name}
       </Text>
       <Text style={[styles.badgeDesc, { color: colors.mutedForeground }]}>
@@ -54,18 +69,32 @@ function BadgeCard({ badge }: { badge: { id: string; name: string; description: 
 export default function AchievementsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { userProfile, badges, entries, monthlyTotal, treesEquivalent, getWeeklyData } = useApp();
+  const {
+    userProfile,
+    badges,
+    entries,
+    monthlyTotal,
+    treesEquivalent,
+    getWeeklyData,
+  } = useApp();
 
   const earned = badges.filter((b) => b.earned).length;
-  const xpProgress = (userProfile.level % 1 === 0 ? (entries.length % 5) / 5 : 0);
   const weeklyData = getWeeklyData();
   const maxWeekly = Math.max(...weeklyData.map((d) => d.value), 1);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
+  // Next level progress
+  const progressInLevel = entries.length % 5;
+  const toNextLevel = progressInLevel === 0 && entries.length > 0 ? 5 : 5 - progressInLevel;
+  const xpPercent = (progressInLevel / 5) * 100;
+
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={[styles.container, { paddingBottom: bottomPad + 20 }]}
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: bottomPad + 20 },
+      ]}
       showsVerticalScrollIndicator={false}
     >
       {/* Level Card */}
@@ -81,35 +110,87 @@ export default function AchievementsScreen() {
             <Text style={styles.streakLabel}>Ardıcıl gün</Text>
           </View>
         </View>
+
         {/* XP Bar */}
         <View style={styles.xpTrack}>
-          <View style={[styles.xpFill, { width: `${Math.round((entries.length % 5) / 5 * 100)}%` }]} />
+          <View
+            style={[
+              styles.xpFill,
+              { width: `${entries.length === 0 ? 0 : xpPercent}%` },
+            ]}
+          />
         </View>
-        <Text style={styles.xpHint}>{entries.length % 5}/5 giriş → Sonrakı səviyyə</Text>
+
+        {/* Next level hint */}
+        <View style={styles.nextLevelRow}>
+          <Text style={styles.xpHint}>
+            {progressInLevel}/{5} giriş tamamlandı
+          </Text>
+          <View style={styles.nextLevelBadge}>
+            <MaterialCommunityIcons name="arrow-up-circle" size={13} color="#A5D6A7" />
+            <Text style={styles.nextLevelText}>
+              {toNextLevel} giriş daha → Səviyyə {userProfile.level + 1}
+            </Text>
+          </View>
+        </View>
       </View>
 
       {/* Eco Impact */}
       <View style={styles.statsRow}>
-        <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statBox,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <MaterialCommunityIcons name="tree" size={28} color="#4CAF50" />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>{treesEquivalent}</Text>
-          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Ağac qənaəti</Text>
+          <Text style={[styles.statValue, { color: colors.foreground }]}>
+            {treesEquivalent}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
+            Ağac qənaəti
+          </Text>
         </View>
-        <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statBox,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <MaterialCommunityIcons name="leaf" size={28} color={colors.primary} />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>{monthlyTotal.toFixed(0)}</Text>
-          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>kq CO₂ bu ay</Text>
+          <Text style={[styles.statValue, { color: colors.foreground }]}>
+            {monthlyTotal.toFixed(0)}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
+            kq CO₂ bu ay
+          </Text>
         </View>
-        <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statBox,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <MaterialCommunityIcons name="trophy" size={28} color="#FF9800" />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>{earned}/{badges.length}</Text>
-          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Nişan</Text>
+          <Text style={[styles.statValue, { color: colors.foreground }]}>
+            {earned}/{badges.length}
+          </Text>
+          <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
+            Nişan
+          </Text>
         </View>
       </View>
 
       {/* Weekly Progress */}
-      <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Həftəlik Karbon İzi</Text>
+      <View
+        style={[
+          styles.chartCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Həftəlik Karbon İzi
+        </Text>
         <View style={styles.barChart}>
           {weeklyData.map((d, i) => {
             const barH = maxWeekly > 0 ? (d.value / maxWeekly) * 80 : 4;
@@ -118,8 +199,20 @@ export default function AchievementsScreen() {
                 <Text style={[styles.barVal, { color: colors.mutedForeground }]}>
                   {d.value > 0 ? d.value.toFixed(0) : ""}
                 </Text>
-                <View style={[styles.bar, { height: Math.max(barH, 4), backgroundColor: colors.primary }]} />
-                <Text style={[styles.barLabel, { color: colors.mutedForeground }]}>{d.day}</Text>
+                <View
+                  style={[
+                    styles.bar,
+                    {
+                      height: Math.max(barH, 4),
+                      backgroundColor: colors.primary,
+                    },
+                  ]}
+                />
+                <Text
+                  style={[styles.barLabel, { color: colors.mutedForeground }]}
+                >
+                  {d.day}
+                </Text>
               </View>
             );
           })}
@@ -127,7 +220,12 @@ export default function AchievementsScreen() {
       </View>
 
       {/* Badges */}
-      <Text style={[styles.sectionTitle, { color: colors.foreground, paddingHorizontal: 2, marginBottom: 8 }]}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          { color: colors.foreground, paddingHorizontal: 2, marginBottom: 8 },
+        ]}
+      >
         Nişanlar
       </Text>
       <View style={styles.badgeGrid}>
@@ -146,22 +244,68 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
-  levelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  levelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   levelLabel: { color: "rgba(255,255,255,0.7)", fontSize: 13 },
-  levelValue: { color: "#FFFFFF", fontSize: 24, fontWeight: "800", marginTop: 2 },
-  streakBox: { alignItems: "center", backgroundColor: "rgba(0,0,0,0.2)", padding: 12, borderRadius: 14 },
+  levelValue: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  streakBox: {
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.2)",
+    padding: 12,
+    borderRadius: 14,
+  },
   streakNum: { color: "#FFFFFF", fontSize: 22, fontWeight: "800" },
   streakLabel: { color: "rgba(255,255,255,0.65)", fontSize: 11 },
-  xpTrack: { height: 8, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 4, overflow: "hidden" },
+  xpTrack: {
+    height: 8,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
   xpFill: { height: "100%", backgroundColor: "#FFFFFF", borderRadius: 4 },
+  nextLevelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   xpHint: { color: "rgba(255,255,255,0.65)", fontSize: 12 },
+  nextLevelBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  nextLevelText: { color: "#A5D6A7", fontSize: 12, fontWeight: "600" },
   statsRow: { flexDirection: "row", gap: 10 },
-  statBox: { flex: 1, alignItems: "center", padding: 16, borderRadius: 16, borderWidth: 1, gap: 6 },
+  statBox: {
+    flex: 1,
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    gap: 6,
+  },
   statValue: { fontSize: 22, fontWeight: "800" },
   statLabel: { fontSize: 11, textAlign: "center" },
   chartCard: { borderRadius: 16, padding: 16, borderWidth: 1, gap: 12 },
   sectionTitle: { fontSize: 16, fontWeight: "700" },
-  barChart: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", height: 100 },
+  barChart: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    height: 100,
+  },
   barItem: { alignItems: "center", flex: 1, gap: 4 },
   barVal: { fontSize: 9 },
   bar: { width: "55%", borderRadius: 4, minHeight: 4 },

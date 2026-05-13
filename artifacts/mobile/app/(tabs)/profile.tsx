@@ -1,5 +1,6 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { router } from "expo-router";
+import React from "react";
 import {
   Platform,
   Pressable,
@@ -12,39 +13,54 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
+import { useTheme } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
-import { router } from "expo-router";
 
 function SettingRow({
   icon,
   label,
   sublabel,
+  onPress,
   right,
 }: {
   icon: string;
   label: string;
   sublabel?: string;
+  onPress?: () => void;
   right: React.ReactNode;
 }) {
   const colors = useColors();
   return (
-    <View style={[styles.settingRow, { borderBottomColor: colors.border }]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.settingRow,
+        { borderBottomColor: colors.border, opacity: pressed && onPress ? 0.7 : 1 },
+      ]}
+    >
       <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
         <Feather name={icon as any} size={18} color={colors.primary} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.settingLabel, { color: colors.foreground }]}>{label}</Text>
-        {sublabel && <Text style={[styles.settingSub, { color: colors.mutedForeground }]}>{sublabel}</Text>}
+        <Text style={[styles.settingLabel, { color: colors.foreground }]}>
+          {label}
+        </Text>
+        {sublabel && (
+          <Text style={[styles.settingSub, { color: colors.mutedForeground }]}>
+            {sublabel}
+          </Text>
+        )}
       </View>
       {right}
-    </View>
+    </Pressable>
   );
 }
 
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { userProfile, entries, badges, monthlyTotal, treesEquivalent, darkMode, toggleDarkMode } = useApp();
+  const { userProfile, entries, badges, monthlyTotal, treesEquivalent } = useApp();
+  const { isDark, toggleDark } = useTheme();
   const earned = badges.filter((b) => b.earned).length;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
   const initials = userProfile.name.slice(0, 2).toUpperCase();
@@ -52,7 +68,10 @@ export default function ProfileScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={[styles.container, { paddingBottom: bottomPad + 20 }]}
+      contentContainerStyle={[
+        styles.container,
+        { paddingBottom: bottomPad + 20 },
+      ]}
       showsVerticalScrollIndicator={false}
     >
       {/* Profile Header */}
@@ -61,18 +80,20 @@ export default function ProfileScreen() {
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
         <Text style={styles.profileName}>{userProfile.name}</Text>
-        <Text style={styles.profileLevel}>Səviyyə {userProfile.level} · EcoTracker</Text>
+        <Text style={styles.profileLevel}>
+          Səviyyə {userProfile.level} · EcoTracker
+        </Text>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{entries.length}</Text>
             <Text style={styles.statLbl}>Giriş</Text>
           </View>
-          <View style={[styles.statDivider]} />
+          <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{userProfile.streak}</Text>
             <Text style={styles.statLbl}>Ardıcıl gün</Text>
           </View>
-          <View style={[styles.statDivider]} />
+          <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNum}>{earned}</Text>
             <Text style={styles.statLbl}>Nişan</Text>
@@ -81,35 +102,65 @@ export default function ProfileScreen() {
       </View>
 
       {/* Eco Impact */}
-      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Ekotəsir</Text>
+      <View
+        style={[
+          styles.section,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Ekotəsir
+        </Text>
         <View style={styles.impactRow}>
           <View style={styles.impactItem}>
             <MaterialCommunityIcons name="tree" size={32} color="#4CAF50" />
-            <Text style={[styles.impactVal, { color: colors.foreground }]}>{treesEquivalent}</Text>
-            <Text style={[styles.impactLabel, { color: colors.mutedForeground }]}>Ağac qənaəti</Text>
+            <Text style={[styles.impactVal, { color: colors.foreground }]}>
+              {treesEquivalent}
+            </Text>
+            <Text
+              style={[styles.impactLabel, { color: colors.mutedForeground }]}
+            >
+              Ağac qənaəti
+            </Text>
           </View>
           <View style={styles.impactItem}>
-            <MaterialCommunityIcons name="molecule-co2" size={32} color={colors.primary} />
-            <Text style={[styles.impactVal, { color: colors.foreground }]}>{monthlyTotal.toFixed(1)}</Text>
-            <Text style={[styles.impactLabel, { color: colors.mutedForeground }]}>kq CO₂ bu ay</Text>
+            <MaterialCommunityIcons
+              name="molecule-co2"
+              size={32}
+              color={colors.primary}
+            />
+            <Text style={[styles.impactVal, { color: colors.foreground }]}>
+              {monthlyTotal.toFixed(1)}
+            </Text>
+            <Text
+              style={[styles.impactLabel, { color: colors.mutedForeground }]}
+            >
+              kq CO₂ bu ay
+            </Text>
           </View>
         </View>
       </View>
 
       {/* Settings */}
-      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Parametrlər</Text>
+      <View
+        style={[
+          styles.section,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Parametrlər
+        </Text>
         <SettingRow
           icon="moon"
           label="Gecə rejimi"
-          sublabel="Tünd tema"
+          sublabel={isDark ? "Aktiv" : "Deaktiv"}
           right={
             <Switch
-              value={darkMode}
-              onValueChange={toggleDarkMode}
+              value={isDark}
+              onValueChange={() => toggleDark()}
               trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={darkMode ? "#FFFFFF" : colors.mutedForeground}
+              thumbColor={isDark ? "#FFFFFF" : colors.mutedForeground}
             />
           }
         />
@@ -117,28 +168,52 @@ export default function ProfileScreen() {
           icon="bell"
           label="Bildirişlər"
           sublabel="Xatırlatmalar"
-          right={<Feather name="chevron-right" size={18} color={colors.mutedForeground} />}
+          onPress={() => router.push("/notifications")}
+          right={
+            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+          }
         />
         <SettingRow
           icon="book-open"
           label="Eko-Vikipediya"
+          onPress={() => router.push("/wiki")}
           right={
-            <Pressable onPress={() => router.push("/wiki")}>
-              <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
-            </Pressable>
+            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
+          }
+        />
+        <SettingRow
+          icon="list"
+          label="Bütün Girişlər"
+          onPress={() => router.push("/entries")}
+          right={
+            <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
           }
         />
       </View>
 
       {/* About */}
-      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Haqqında</Text>
+      <View
+        style={[
+          styles.section,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Haqqında
+        </Text>
         <View style={styles.aboutRow}>
-          <MaterialCommunityIcons name="leaf" size={20} color={colors.primary} />
-          <Text style={[styles.aboutText, { color: colors.foreground }]}>EcoTrack v1.0</Text>
+          <MaterialCommunityIcons
+            name="leaf"
+            size={20}
+            color={colors.primary}
+          />
+          <Text style={[styles.aboutText, { color: colors.foreground }]}>
+            EcoTrack v1.0
+          </Text>
         </View>
         <Text style={[styles.aboutDesc, { color: colors.mutedForeground }]}>
-          Karbon izi izləmə və e-tullantı idarəetmə sistemi. IPCC standartlarına əsaslanan hesablama metodologiyası.
+          Karbon izi izləmə və e-tullantı idarəetmə sistemi. IPCC
+          standartlarına əsaslanan hesablama metodologiyası.
         </Text>
       </View>
     </ScrollView>
@@ -176,17 +251,27 @@ const styles = StyleSheet.create({
   statItem: { flex: 1, alignItems: "center" },
   statNum: { color: "#FFFFFF", fontSize: 22, fontWeight: "800" },
   statLbl: { color: "rgba(255,255,255,0.65)", fontSize: 11, marginTop: 2 },
-  statDivider: { width: 1, backgroundColor: "rgba(255,255,255,0.2)", marginVertical: 4 },
+  statDivider: {
+    width: 1,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    marginVertical: 4,
+  },
   section: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
   sectionTitle: { fontSize: 15, fontWeight: "700" },
   settingRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
   },
-  settingIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  settingIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   settingLabel: { fontSize: 15, fontWeight: "500" },
   settingSub: { fontSize: 12, marginTop: 1 },
   impactRow: { flexDirection: "row" },

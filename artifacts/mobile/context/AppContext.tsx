@@ -40,13 +40,12 @@ interface AppContextType {
   entries: CarbonEntry[];
   userProfile: UserProfile;
   badges: Badge[];
-  darkMode: boolean;
   todayTip: string;
   monthlyTotal: number;
   totalSaved: number;
   treesEquivalent: number;
   addEntry: (entry: Omit<CarbonEntry, "id" | "date">) => Promise<void>;
-  toggleDarkMode: () => void;
+  deleteEntry: (id: string) => Promise<void>;
   getWeeklyData: () => { day: string; value: number }[];
 }
 
@@ -56,7 +55,6 @@ const STORAGE_KEYS = {
   entries: "@ecotrack_entries",
   profile: "@ecotrack_profile",
   badges: "@ecotrack_badges",
-  darkMode: "@ecotrack_dark_mode",
 };
 
 const DEFAULT_PROFILE: UserProfile = {
@@ -70,24 +68,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<CarbonEntry[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [badges, setBadges] = useState<Badge[]>(ALL_BADGES);
-  const [darkMode, setDarkMode] = useState(false);
   const [tipIndex] = useState(() => new Date().getDate() % ECO_TIPS.length);
 
   useEffect(() => {
     (async () => {
       try {
-        const [storedEntries, storedProfile, storedBadges, storedDark] =
-          await Promise.all([
-            AsyncStorage.getItem(STORAGE_KEYS.entries),
-            AsyncStorage.getItem(STORAGE_KEYS.profile),
-            AsyncStorage.getItem(STORAGE_KEYS.badges),
-            AsyncStorage.getItem(STORAGE_KEYS.darkMode),
-          ]);
+        const [storedEntries, storedProfile, storedBadges] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.entries),
+          AsyncStorage.getItem(STORAGE_KEYS.profile),
+          AsyncStorage.getItem(STORAGE_KEYS.badges),
+        ]);
         if (storedEntries) setEntries(JSON.parse(storedEntries));
         if (storedProfile)
           setUserProfile({ ...DEFAULT_PROFILE, ...JSON.parse(storedProfile) });
         if (storedBadges) setBadges(JSON.parse(storedBadges));
-        if (storedDark) setDarkMode(JSON.parse(storedDark));
       } catch {}
     })();
   }, []);
@@ -153,11 +147,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [entries, userProfile, badges]
   );
 
-  const toggleDarkMode = useCallback(async () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    await AsyncStorage.setItem(STORAGE_KEYS.darkMode, JSON.stringify(next));
-  }, [darkMode]);
+  const deleteEntry = useCallback(
+    async (id: string) => {
+      const updated = entries.filter((e) => e.id !== id);
+      setEntries(updated);
+      await AsyncStorage.setItem(STORAGE_KEYS.entries, JSON.stringify(updated));
+      const newProfile: UserProfile = {
+        ...userProfile,
+        level: Math.floor(updated.length / 5) + 1,
+      };
+      setUserProfile(newProfile);
+      await AsyncStorage.setItem(
+        STORAGE_KEYS.profile,
+        JSON.stringify(newProfile)
+      );
+    },
+    [entries, userProfile]
+  );
 
   const monthlyTotal = useMemo(() => {
     const now = new Date();
@@ -179,7 +185,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const getWeeklyData = useCallback(() => {
     const days = ["B.e.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən.", "Baz."];
-    const result = days.map((day, i) => {
+    return days.map((day, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       const dayStr = d.toDateString();
@@ -188,7 +194,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         .reduce((s, e) => s + e.total, 0);
       return { day, value };
     });
-    return result;
   }, [entries]);
 
   const value = useMemo(
@@ -196,26 +201,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       entries,
       userProfile,
       badges,
-      darkMode,
       todayTip: ECO_TIPS[tipIndex],
       monthlyTotal,
       totalSaved,
       treesEquivalent,
       addEntry,
-      toggleDarkMode,
+      deleteEntry,
       getWeeklyData,
     }),
     [
       entries,
       userProfile,
       badges,
-      darkMode,
       tipIndex,
       monthlyTotal,
       totalSaved,
       treesEquivalent,
       addEntry,
-      toggleDarkMode,
+      deleteEntry,
       getWeeklyData,
     ]
   );
