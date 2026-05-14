@@ -9,6 +9,8 @@ import React, {
 } from "react";
 
 import { ALL_BADGES, ECO_TIPS, MONTHLY_TARGET_KG } from "@/data/ecoData";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/lib/api";
 
 export interface CarbonEntry {
   id: string;
@@ -52,7 +54,6 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  entries: "@ecotrack_entries",
   profile: "@ecotrack_profile",
   badges: "@ecotrack_badges",
 };
@@ -65,26 +66,55 @@ const DEFAULT_PROFILE: UserProfile = {
 };
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { token, user } = useAuth();
   const [entries, setEntries] = useState<CarbonEntry[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [badges, setBadges] = useState<Badge[]>(ALL_BADGES);
   const [tipIndex] = useState(() => new Date().getDate() % ECO_TIPS.length);
 
+  // Sync profile/badges from local storage on mount
   useEffect(() => {
     (async () => {
       try {
-        const [storedEntries, storedProfile, storedBadges] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEYS.entries),
+        const [storedProfile, storedBadges] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.profile),
           AsyncStorage.getItem(STORAGE_KEYS.badges),
         ]);
-        if (storedEntries) setEntries(JSON.parse(storedEntries));
         if (storedProfile)
           setUserProfile({ ...DEFAULT_PROFILE, ...JSON.parse(storedProfile) });
         if (storedBadges) setBadges(JSON.parse(storedBadges));
       } catch {}
     })();
   }, []);
+
+  // Sync user name from auth
+  useEffect(() => {
+    if (user) {
+      setUserProfile((prev) => ({ ...prev, name: user.name }));
+    }
+  }, [user]);
+
+  // Load entries from API when token changes (login / logout)
+  useEffect(() => {
+    if (!token) {
+      setEntries([]);
+      return;
+    }
+    api.entries.list().then((rows) => {
+      setEntries(
+        rows.map((r) => ({
+          id: r.id,
+          date: r.date,
+          transport: r.transport,
+          energy: r.energy,
+          food: r.food,
+          total: r.total,
+        }))
+      );
+    }).catch(() => {
+      // Network error — keep local state as-is
+    });
+  }, [token]);
 
   const addEntry = useCallback(
     async (entry: Omit<CarbonEntry, "id" | "date">) => {
@@ -95,8 +125,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       };
       const updated = [newEntry, ...entries];
       setEntries(updated);
-      await AsyncStorage.setItem(STORAGE_KEYS.entries, JSON.stringify(updated));
 
+      // Persist to API
+      if (token) {
+        try {
+          await api.entries.create({
+            id: newEntry.id,
+            transport: newEntry.transport,
+            energy: newEntry.energy,
+            food: newEntry.food,
+            total: newEntry.total,
+            date: newEntry.date,
+          });
+        } catch {
+          // silent — local state already updated
+        }
+      }
+
+      // Streak logic
       const today = new Date().toDateString();
       const isNewDay = userProfile.lastEntryDate !== today;
       const prevDayCheck = new Date();
@@ -111,6 +157,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       const newProfile: UserProfile = {
         ...userProfile,
+        name: user?.name ?? userProfile.name,
         streak: newStreak,
         lastEntryDate: today,
         level: Math.floor(updated.length / 5) + 1,
@@ -121,6 +168,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         JSON.stringify(newProfile)
       );
 
+      // Badge logic
       const totalCO2 = updated.reduce((s, e) => s + e.total, 0);
       const updatedBadges = badges.map((b) => {
         if (b.earned) return b;
@@ -144,14 +192,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         JSON.stringify(updatedBadges)
       );
     },
-    [entries, userProfile, badges]
+    [entries, userProfile, badges, token, user]
   );
 
   const deleteEntry = useCallback(
     async (id: string) => {
       const updated = entries.filter((e) => e.id !== id);
       setEntries(updated);
-      await AsyncStorage.setItem(STORAGE_KEYS.entries, JSON.stringify(updated));
+
+      // Remove from API
+      if (token) {
+        try {
+          await api.entries.delete(id);
+        } catch {
+          // silent
+        }
+      }
+
       const newProfile: UserProfile = {
         ...userProfile,
         level: Math.floor(updated.length / 5) + 1,
@@ -162,7 +219,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         JSON.stringify(newProfile)
       );
     },
-    [entries, userProfile]
+    [entries, userProfile, token]
   );
 
   const monthlyTotal = useMemo(() => {
@@ -184,7 +241,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const getWeeklyData = useCallback(() => {
-    // Index 0 = Sunday … 6 = Saturday (JS getDay() convention)
     const AZ_DAYS = ["Baz.", "B.E.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən."];
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();

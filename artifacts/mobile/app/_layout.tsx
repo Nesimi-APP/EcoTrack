@@ -10,17 +10,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import {
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 
@@ -29,13 +25,22 @@ SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 function RootLayoutNav() {
+  const { user, isLoading } = useAuth();
+
   useEffect(() => {
+    if (isLoading) return;
+
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+
+    // Logged in — check onboarding
     AsyncStorage.getItem("@ecotrack_onboarding").then((val) => {
-      if (!val) {
-        router.replace("/onboarding");
-      }
+      if (!val) router.replace("/onboarding");
+      // else: stays on (tabs) which is the initial route
     });
-  }, []);
+  }, [isLoading, user]);
 
   return (
     <Stack screenOptions={{ headerBackTitle: "Geri" }}>
@@ -43,6 +48,14 @@ function RootLayoutNav() {
       <Stack.Screen
         name="onboarding"
         options={{ headerShown: false, animation: "fade" }}
+      />
+      <Stack.Screen
+        name="auth/login"
+        options={{ headerShown: false, animation: "fade" }}
+      />
+      <Stack.Screen
+        name="auth/register"
+        options={{ headerShown: false, animation: "slide_from_right" }}
       />
       <Stack.Screen
         name="notifications"
@@ -82,7 +95,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Custom in-app splash screen while fonts load
   if (!fontsLoaded && !fontError) {
     return (
       <View style={styles.splash}>
@@ -103,15 +115,17 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <ThemeProvider>
-            <AppProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </AppProvider>
-          </ThemeProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <AppProvider>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </AppProvider>
+            </ThemeProvider>
+          </AuthProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

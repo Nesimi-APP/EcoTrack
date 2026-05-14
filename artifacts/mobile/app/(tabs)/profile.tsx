@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useColors } from "@/hooks/useColors";
 
@@ -61,9 +62,16 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { userProfile, entries, badges, monthlyTotal, treesEquivalent } = useApp();
   const { isDark, toggleDark } = useTheme();
+  const { user, logout } = useAuth();
   const earned = badges.filter((b) => b.earned).length;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
-  const initials = userProfile.name.slice(0, 2).toUpperCase();
+  const displayName = user?.name ?? userProfile.name;
+  const initials = displayName.slice(0, 2).toUpperCase();
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/auth/login");
+  };
 
   return (
     <ScrollView
@@ -79,7 +87,7 @@ export default function ProfileScreen() {
         <View style={styles.avatarCircle}>
           <Text style={styles.avatarText}>{initials}</Text>
         </View>
-        <Text style={styles.profileName}>{userProfile.name}</Text>
+        <Text style={styles.profileName}>{displayName}</Text>
         <Text style={styles.profileLevel}>
           Səviyyə {userProfile.level} · EcoTracker
         </Text>
@@ -201,6 +209,14 @@ export default function ProfileScreen() {
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
           Haqqında
         </Text>
+        {user && (
+          <View style={styles.aboutRow}>
+            <Feather name="mail" size={16} color={colors.mutedForeground} />
+            <Text style={[styles.aboutText, { color: colors.mutedForeground, fontSize: 13 }]}>
+              {user.email}
+            </Text>
+          </View>
+        )}
         <View style={styles.aboutRow}>
           <MaterialCommunityIcons
             name="leaf"
@@ -216,6 +232,15 @@ export default function ProfileScreen() {
           standartlarına əsaslanan hesablama metodologiyası.
         </Text>
       </View>
+
+      {/* Logout */}
+      <Pressable
+        style={[styles.logoutBtn, { borderColor: "#EF5350" }]}
+        onPress={handleLogout}
+      >
+        <Feather name="log-out" size={18} color="#EF5350" />
+        <Text style={styles.logoutText}>Çıxış et</Text>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -281,4 +306,15 @@ const styles = StyleSheet.create({
   aboutRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   aboutText: { fontSize: 15, fontWeight: "600" },
   aboutDesc: { fontSize: 13, lineHeight: 20 },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    marginTop: 4,
+  },
+  logoutText: { color: "#EF5350", fontSize: 16, fontWeight: "700" },
 });
