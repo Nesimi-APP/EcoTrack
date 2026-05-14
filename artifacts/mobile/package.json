@@ -56,6 +56,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "lottie-react-native": "^7.3.6",
     "react-native-maps": "1.18.0"
   }
 }

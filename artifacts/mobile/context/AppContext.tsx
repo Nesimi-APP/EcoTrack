@@ -184,15 +184,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const getWeeklyData = useCallback(() => {
-    const days = ["B.e.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən.", "Baz."];
-    return days.map((day, i) => {
+    // Index 0 = Sunday … 6 = Saturday (JS getDay() convention)
+    const AZ_DAYS = ["Baz.", "B.E.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən."];
+    return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
       const dayStr = d.toDateString();
       const value = entries
         .filter((e) => new Date(e.date).toDateString() === dayStr)
         .reduce((s, e) => s + e.total, 0);
-      return { day, value };
+      return { day: AZ_DAYS[d.getDay()], value };
     });
   }, [entries]);
 

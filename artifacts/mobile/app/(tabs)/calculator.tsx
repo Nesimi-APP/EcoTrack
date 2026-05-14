@@ -38,7 +38,6 @@ const VEHICLES: { key: VehicleKey; label: string; icon: string }[] = [
   { key: "bus", label: "Avtobus", icon: "bus" },
   { key: "metro", label: "Metro", icon: "subway" },
   { key: "motorcycle", label: "Moto", icon: "motorbike" },
-  { key: "bicycle", label: "Velosiped", icon: "bicycle" },
 ];
 
 const FOODS: { key: FoodKey; label: string; icon: string }[] = [
@@ -47,7 +46,6 @@ const FOODS: { key: FoodKey; label: string; icon: string }[] = [
   { key: "pork", label: "Donuz əti", icon: "pig" },
   { key: "chicken", label: "Toyuq", icon: "food-drumstick" },
   { key: "fish", label: "Balıq", icon: "fish" },
-  { key: "vegetarian", label: "Vegetar", icon: "leaf" },
   { key: "vegan", label: "Vegan", icon: "sprout" },
 ];
 
