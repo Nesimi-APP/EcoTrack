@@ -19,12 +19,29 @@ import { useColors } from "@/hooks/useColors";
 
 type Point = (typeof WASTE_COLLECTION_POINTS)[0];
 
-const BAKU_REGION: Region = {
-  latitude: 40.4093,
-  longitude: 49.867,
-  latitudeDelta: 0.12,
-  longitudeDelta: 0.12,
+// Start zoomed out to show the whole world
+const WORLD_REGION: Region = {
+  latitude: 20,
+  longitude: 15,
+  latitudeDelta: 130,
+  longitudeDelta: 130,
 };
+
+// Pick a marker tint color per category
+const CATEGORY_COLORS: Record<string, string> = {
+  Batareya:           "#F44336",
+  Elektronika:        "#2196F3",
+  Telefon:            "#9C27B0",
+  Kompüter:           "#FF9800",
+  "Məişət texnikası": "#4CAF50",
+};
+
+function markerColor(point: Point, filter: string): string {
+  if (filter !== "Hamısı" && CATEGORY_COLORS[filter])
+    return CATEGORY_COLORS[filter];
+  // Use color of first type
+  return CATEGORY_COLORS[point.types[0]] ?? "#2D7A4F";
+}
 
 export default function NativeMapView() {
   const colors = useColors();
@@ -65,11 +82,12 @@ export default function NativeMapView() {
 
   const panelTranslate = slideAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [300, 0],
+    outputRange: [320, 0],
   });
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
+      {/* Category filter chips */}
       <View style={[styles.filterBar, { top: insets.top + 8 }]}>
         <ScrollView
           horizontal
@@ -101,36 +119,46 @@ export default function NativeMapView() {
             </Pressable>
           ))}
         </ScrollView>
+
+        {/* Point count badge */}
+        <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
+          <MaterialCommunityIcons name="map-marker" size={12} color="#FFFFFF" />
+          <Text style={styles.countText}>{filtered.length} məntəqə</Text>
+        </View>
       </View>
 
       <MapView
         style={styles.map}
-        initialRegion={BAKU_REGION}
+        initialRegion={WORLD_REGION}
         showsUserLocation
         showsMyLocationButton
       >
-        {filtered.map((point) => (
-          <Marker
-            key={point.id}
-            coordinate={{ latitude: point.lat, longitude: point.lng }}
-            onPress={() => selectPoint(point)}
-          >
-            <View
-              style={[
-                styles.markerContainer,
-                { backgroundColor: colors.primary },
-              ]}
+        {filtered.map((point) => {
+          const color = markerColor(point, filter);
+          return (
+            <Marker
+              key={point.id}
+              coordinate={{ latitude: point.lat, longitude: point.lng }}
+              onPress={() => selectPoint(point)}
             >
-              <MaterialCommunityIcons
-                name="recycle"
-                size={16}
-                color="#FFFFFF"
-              />
-            </View>
-          </Marker>
-        ))}
+              <View
+                style={[
+                  styles.markerContainer,
+                  { backgroundColor: color },
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="recycle"
+                  size={14}
+                  color="#FFFFFF"
+                />
+              </View>
+            </Marker>
+          );
+        })}
       </MapView>
 
+      {/* Detail panel */}
       {selected && (
         <Animated.View
           style={[
@@ -169,11 +197,17 @@ export default function NativeMapView() {
                 key={t}
                 style={[
                   styles.typeChip,
-                  { backgroundColor: colors.secondary },
+                  {
+                    backgroundColor:
+                      (CATEGORY_COLORS[t] ?? colors.primary) + "22",
+                  },
                 ]}
               >
                 <Text
-                  style={[styles.typeChipText, { color: colors.primary }]}
+                  style={[
+                    styles.typeChipText,
+                    { color: CATEGORY_COLORS[t] ?? colors.primary },
+                  ]}
                 >
                   {t}
                 </Text>
@@ -190,6 +224,26 @@ export default function NativeMapView() {
           </Pressable>
         </Animated.View>
       )}
+
+      {/* Legend */}
+      <View
+        style={[
+          styles.legend,
+          {
+            backgroundColor: colors.card,
+            bottom: insets.bottom + 12,
+          },
+        ]}
+      >
+        {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
+          <View key={cat} style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: color }]} />
+            <Text style={[styles.legendText, { color: colors.mutedForeground }]}>
+              {cat}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -202,6 +256,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
+    gap: 6,
   },
   filterScroll: { paddingHorizontal: 12, gap: 8, paddingVertical: 4 },
   filterChip: {
@@ -210,21 +265,34 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
   filterText: { fontSize: 13, fontWeight: "600" },
+  countBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    marginLeft: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  countText: { color: "#FFFFFF", fontSize: 11, fontWeight: "700" },
   markerContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowRadius: 3,
+    elevation: 3,
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
   },
   panel: {
     position: "absolute",
@@ -251,7 +319,7 @@ const styles = StyleSheet.create({
   closeBtn: { position: "absolute", top: 16, right: 16, padding: 4 },
   panelTitle: { fontSize: 17, fontWeight: "700", paddingRight: 28 },
   panelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  panelText: { fontSize: 13 },
+  panelText: { fontSize: 13, flex: 1 },
   typeChips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   typeChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
   typeChipText: { fontSize: 12, fontWeight: "600" },
@@ -265,4 +333,18 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   directBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  legend: {
+    position: "absolute",
+    right: 12,
+    borderRadius: 12,
+    padding: 10,
+    gap: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
+  legendDot: { width: 8, height: 8, borderRadius: 4 },
+  legendText: { fontSize: 10, fontWeight: "500" },
 });
