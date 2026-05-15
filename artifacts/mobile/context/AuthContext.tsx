@@ -55,14 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const register = useCallback(
     async (email: string, name: string, password: string) => {
-      const { token: t, user: u } = await api.auth.register({
+      await api.auth.register({
         email,
         name,
         password,
       });
-      await AsyncStorage.setItem(TOKEN_KEY, t);
-      setToken(t);
-      setUser(u);
+      // Do not log in automatically — user must sign in manually after registration
     },
     []
   );

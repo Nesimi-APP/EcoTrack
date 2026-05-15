@@ -42,8 +42,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await register(email.trim(), name.trim(), password);
-      // First time — go to onboarding
-      router.replace("/onboarding");
+      router.replace("/auth/login");
     } catch (err: unknown) {
       Alert.alert(
         "Qeydiyyat uğursuz",
