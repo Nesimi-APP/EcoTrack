@@ -48,7 +48,7 @@ interface AppContextType {
   treesEquivalent: number;
   addEntry: (entry: Omit<CarbonEntry, "id" | "date">) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
-  getWeeklyData: () => { day: string; value: number }[];
+  getWeeklyData: (days?: string[]) => { day: string; value: number }[];
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -307,8 +307,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [totalSaved]
   );
 
-  const getWeeklyData = useCallback(() => {
-    const AZ_DAYS = ["Baz.", "B.E.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən."];
+  const getWeeklyData = useCallback((days?: string[]) => {
+    const DAY_LABELS = days ?? ["Baz.", "B.E.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən."];
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
@@ -316,7 +316,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const value = entries
         .filter((e) => new Date(e.date).toDateString() === dayStr)
         .reduce((s, e) => s + e.total, 0);
-      return { day: AZ_DAYS[d.getDay()], value };
+      return { day: DAY_LABELS[d.getDay()], value };
     });
   }, [entries]);
 

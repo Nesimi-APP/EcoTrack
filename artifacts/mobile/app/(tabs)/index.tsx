@@ -81,7 +81,7 @@ export default function DashboardScreen() {
     treesEquivalent,
     getWeeklyData,
   } = useApp();
-  const weeklyData = getWeeklyData();
+  const weeklyData = getWeeklyData(t.dashboard.days);
   const maxWeekly = Math.max(...weeklyData.map((d) => d.value), 1);
 
   const progressPercent = Math.round((monthlyTotal / MONTHLY_TARGET_KG) * 100);

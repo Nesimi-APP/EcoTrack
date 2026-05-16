@@ -51,6 +51,7 @@ export type Translations = {
     treesSaved: string;
     tip: string;
     weeklyChart: string;
+    days: string[];
     recentEntries: string;
     seeAll: string;
     dailyEntry: string;
@@ -257,6 +258,7 @@ const az: Translations = {
     treesSaved: "ağac qənaəti",
     tip: "Günün məsləhəti",
     weeklyChart: "Həftəlik Karbon İzi",
+    days: ["Baz.", "B.E.", "Ç.ax.", "Çər.", "C.ax.", "Cüm.", "Şən."],
     recentEntries: "Son Girişlər",
     seeAll: "Hamısı →",
     dailyEntry: "Gündəlik giriş",
@@ -478,6 +480,7 @@ const en: Translations = {
     treesSaved: "trees saved",
     tip: "Daily Tip",
     weeklyChart: "Weekly Carbon Footprint",
+    days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     recentEntries: "Recent Entries",
     seeAll: "All →",
     dailyEntry: "Daily entry",
@@ -699,6 +702,7 @@ const tr: Translations = {
     treesSaved: "ağaç tasarrufu",
     tip: "Günün İpucu",
     weeklyChart: "Haftalık Karbon Ayak İzi",
+    days: ["Paz.", "Pzt.", "Sal.", "Çar.", "Per.", "Cum.", "Cmt."],
     recentEntries: "Son Girişler",
     seeAll: "Hepsi →",
     dailyEntry: "Günlük giriş",
