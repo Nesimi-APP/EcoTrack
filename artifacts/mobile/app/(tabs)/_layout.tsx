@@ -22,6 +22,10 @@ function NativeTabLayout() {
         <Icon sf={{ default: "function", selected: "function" }} />
         <Label>{t.tabs.calculator}</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="scan">
+        <Icon sf={{ default: "barcode.viewfinder", selected: "barcode.viewfinder" }} />
+        <Label>{t.tabs.scan}</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="map">
         <Icon sf={{ default: "map", selected: "map.fill" }} />
         <Label>{t.tabs.map}</Label>
@@ -97,6 +101,19 @@ function ClassicTabLayout() {
               <SymbolView name="function" tintColor={color} size={24} />
             ) : (
               <Ionicons name="calculator-outline" size={23} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
+        name="scan"
+        options={{
+          title: t.tabs.scan,
+          headerShown: false,
+          tabBarIcon: ({ color }) =>
+            isIOS ? (
+              <SymbolView name="barcode.viewfinder" tintColor={color} size={24} />
+            ) : (
+              <Ionicons name="barcode-outline" size={24} color={color} />
             ),
         }}
       />

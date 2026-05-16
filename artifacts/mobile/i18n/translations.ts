@@ -140,6 +140,7 @@ export type Translations = {
   tabs: {
     home: string;
     calculator: string;
+    scan: string;
     map: string;
     achievements: string;
     profile: string;
@@ -324,6 +325,7 @@ const az: Translations = {
   tabs: {
     home: "Ana Səhifə",
     calculator: "Kalkulyator",
+    scan: "Skan",
     map: "Xəritə",
     achievements: "Nailiyyətlər",
     profile: "Profil",
@@ -505,6 +507,7 @@ const en: Translations = {
   tabs: {
     home: "Home",
     calculator: "Calculator",
+    scan: "Scan",
     map: "Map",
     achievements: "Achievements",
     profile: "Profile",
@@ -686,6 +689,7 @@ const tr: Translations = {
   tabs: {
     home: "Ana Sayfa",
     calculator: "Hesap Makinası",
+    scan: "Tara",
     map: "Harita",
     achievements: "Başarılar",
     profile: "Profil",
