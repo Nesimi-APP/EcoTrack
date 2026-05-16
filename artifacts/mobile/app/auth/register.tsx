@@ -33,12 +33,15 @@ export default function RegisterScreen() {
       Alert.alert(t.auth.register.errorTitle, t.auth.register.errorFill);
       return;
     }
-    if (password.length < 6) {
+    if (password.length < 8) {
       Alert.alert(t.auth.register.errorTitle, t.auth.register.errorShortPass);
       return;
     }
     if (password !== confirm) {
-      Alert.alert(t.auth.register.errorTitle, t.auth.register.errorPassMismatch);
+      Alert.alert(
+        t.auth.register.errorTitle,
+        t.auth.register.errorPassMismatch,
+      );
       return;
     }
     setLoading(true);
@@ -47,7 +50,7 @@ export default function RegisterScreen() {
     } catch (err: unknown) {
       Alert.alert(
         t.auth.register.errorTitle,
-        err instanceof Error ? err.message : t.auth.register.errorGeneral
+        err instanceof Error ? err.message : t.auth.register.errorGeneral,
       );
     } finally {
       setLoading(false);
@@ -82,7 +85,12 @@ export default function RegisterScreen() {
             <View style={styles.field}>
               <Text style={styles.label}>{t.auth.register.name}</Text>
               <View style={styles.inputWrap}>
-                <Feather name="user" size={18} color="#7BAE8A" style={styles.inputIcon} />
+                <Feather
+                  name="user"
+                  size={18}
+                  color="#7BAE8A"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder={t.auth.register.namePlaceholder}
@@ -97,7 +105,12 @@ export default function RegisterScreen() {
             <View style={styles.field}>
               <Text style={styles.label}>{t.auth.register.email}</Text>
               <View style={styles.inputWrap}>
-                <Feather name="mail" size={18} color="#7BAE8A" style={styles.inputIcon} />
+                <Feather
+                  name="mail"
+                  size={18}
+                  color="#7BAE8A"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="siz@email.com"
@@ -114,7 +127,12 @@ export default function RegisterScreen() {
             <View style={styles.field}>
               <Text style={styles.label}>{t.auth.register.password}</Text>
               <View style={styles.inputWrap}>
-                <Feather name="lock" size={18} color="#7BAE8A" style={styles.inputIcon} />
+                <Feather
+                  name="lock"
+                  size={18}
+                  color="#7BAE8A"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   placeholder={t.auth.register.passwordPlaceholder}
@@ -124,16 +142,30 @@ export default function RegisterScreen() {
                   secureTextEntry={!showPass}
                   autoCapitalize="none"
                 />
-                <Pressable onPress={() => setShowPass(!showPass)} style={styles.eyeBtn}>
-                  <Feather name={showPass ? "eye-off" : "eye"} size={18} color="#7BAE8A" />
+                <Pressable
+                  onPress={() => setShowPass(!showPass)}
+                  style={styles.eyeBtn}
+                >
+                  <Feather
+                    name={showPass ? "eye-off" : "eye"}
+                    size={18}
+                    color="#7BAE8A"
+                  />
                 </Pressable>
               </View>
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>{t.auth.register.confirmPassword}</Text>
+              <Text style={styles.label}>
+                {t.auth.register.confirmPassword}
+              </Text>
               <View style={styles.inputWrap}>
-                <Feather name="check-circle" size={18} color="#7BAE8A" style={styles.inputIcon} />
+                <Feather
+                  name="check-circle"
+                  size={18}
+                  color="#7BAE8A"
+                  style={styles.inputIcon}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder={t.auth.register.confirmPlaceholder}
@@ -152,13 +184,17 @@ export default function RegisterScreen() {
               disabled={loading}
             >
               <Text style={styles.btnText}>
-                {loading ? t.auth.register.registering : t.auth.register.registerBtn}
+                {loading
+                  ? t.auth.register.registering
+                  : t.auth.register.registerBtn}
               </Text>
             </Pressable>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t.auth.register.alreadyHaveAccount}</Text>
+              <Text style={styles.dividerText}>
+                {t.auth.register.alreadyHaveAccount}
+              </Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -166,7 +202,9 @@ export default function RegisterScreen() {
               style={styles.secondaryBtn}
               onPress={() => router.back()}
             >
-              <Text style={styles.secondaryBtnText}>{t.auth.register.loginLink}</Text>
+              <Text style={styles.secondaryBtnText}>
+                {t.auth.register.loginLink}
+              </Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -180,13 +218,21 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, justifyContent: "center", padding: 20, gap: 24 },
   hero: { alignItems: "center", gap: 8, paddingTop: 8 },
   iconWrap: {
-    width: 80, height: 80, borderRadius: 20,
+    width: 80,
+    height: 80,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.18)",
-    alignItems: "center", justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 4,
   },
   icon: { width: 64, height: 64 },
-  appName: { color: "#FFFFFF", fontSize: 28, fontWeight: "800", letterSpacing: -0.5 },
+  appName: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
   tagline: { color: "rgba(255,255,255,0.65)", fontSize: 14, fontWeight: "500" },
   card: {
     backgroundColor: "#FFFFFF",
@@ -198,22 +244,37 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 8,
   },
-  heading: { fontSize: 20, fontWeight: "700", color: "#1A3A26", marginBottom: 2 },
+  heading: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1A3A26",
+    marginBottom: 2,
+  },
   field: { gap: 6 },
   label: { fontSize: 13, fontWeight: "600", color: "#4A7A5A" },
   inputWrap: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: "#F4FAF6", borderRadius: 12,
-    borderWidth: 1.5, borderColor: "#C8E6C9",
-    paddingHorizontal: 12, height: 50,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F4FAF6",
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#C8E6C9",
+    paddingHorizontal: 12,
+    height: 50,
   },
   inputIcon: { marginRight: 8 },
   input: { flex: 1, fontSize: 15, color: "#1A3A26" },
   eyeBtn: { padding: 4 },
   btn: {
-    backgroundColor: "#2D7A4F", borderRadius: 14,
-    height: 52, alignItems: "center", justifyContent: "center",
-    shadowColor: "#2D7A4F", shadowOpacity: 0.4, shadowRadius: 8, elevation: 4,
+    backgroundColor: "#2D7A4F",
+    borderRadius: 14,
+    height: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#2D7A4F",
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 4,
     marginTop: 4,
   },
   btnDisabled: { opacity: 0.6 },
@@ -222,9 +283,12 @@ const styles = StyleSheet.create({
   dividerLine: { flex: 1, height: 1, backgroundColor: "#E8F5E9" },
   dividerText: { color: "#7BAE8A", fontSize: 12, fontWeight: "500" },
   secondaryBtn: {
-    borderRadius: 14, height: 52,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 1.5, borderColor: "#2D7A4F",
+    borderRadius: 14,
+    height: 52,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#2D7A4F",
   },
   secondaryBtnText: { color: "#2D7A4F", fontSize: 16, fontWeight: "700" },
 });

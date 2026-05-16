@@ -17,8 +17,8 @@ router.post("/auth/register", async (req, res) => {
   if (!email || !name || !password) {
     return res.status(400).json({ error: "Bütün sahələr doldurulmalıdır" });
   }
-  if (password.length < 6) {
-    return res.status(400).json({ error: "Şifrə ən az 6 simvol olmalıdır" });
+  if (password.length < 8) {
+    return res.status(400).json({ error: "Şifrə ən az 8 simvol olmalıdır" });
   }
 
   const existing = await db
