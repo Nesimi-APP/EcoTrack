@@ -66,4 +66,16 @@ export const api = {
     delete: (id: string) =>
       request<{ ok: boolean }>(`/entries/${id}`, { method: "DELETE" }),
   },
+  leaderboard: {
+    get: () =>
+      request<ApiLeaderboardEntry[]>("/leaderboard"),
+  },
 };
+
+export interface ApiLeaderboardEntry {
+  rank: number;
+  name: string;
+  totalCO2: number;
+  entryCount: number;
+  isMe: boolean;
+}

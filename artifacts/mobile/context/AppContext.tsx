@@ -58,6 +58,19 @@ const STORAGE_KEYS = {
   badges: "@ecotrack_badges",
 };
 
+export function totalEntriesForLevel(level: number): number {
+  return Math.floor((5 * level * (level - 1)) / 2);
+}
+
+export function getLevel(count: number): number {
+  if (count <= 0) return 1;
+  return Math.max(1, Math.floor((1 + Math.sqrt(1 + (8 * count) / 5)) / 2));
+}
+
+export function entriesNeededForLevel(level: number): number {
+  return level * 5;
+}
+
 const DEFAULT_PROFILE: UserProfile = {
   name: "EcoTracker",
   level: 1,
@@ -160,7 +173,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         name: user?.name ?? userProfile.name,
         streak: newStreak,
         lastEntryDate: today,
-        level: Math.floor(updated.length / 5) + 1,
+        level: getLevel(updated.length),
       };
       setUserProfile(newProfile);
       await AsyncStorage.setItem(
@@ -211,7 +224,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       const newProfile: UserProfile = {
         ...userProfile,
-        level: Math.floor(updated.length / 5) + 1,
+        level: getLevel(updated.length),
       };
       setUserProfile(newProfile);
       await AsyncStorage.setItem(
