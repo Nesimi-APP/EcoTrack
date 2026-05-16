@@ -4,6 +4,8 @@ import * as Linking from "expo-linking";
 import React, { useRef, useState } from "react";
 import {
   Animated,
+  Dimensions,
+  PanResponder,
   Platform,
   Pressable,
   ScrollView,
@@ -26,32 +28,95 @@ const WORLD_REGION: Region = {
   longitudeDelta: 130,
 };
 
+const { height: SCREEN_H } = Dimensions.get("window");
+
+// Sheet occupies 68% of screen height
+const SHEET_HEIGHT = SCREEN_H * 0.68;
+// How much peeks above the bottom when collapsed
+const PEEK_HEIGHT = 220;
+
+// translateY snap points
+const POS_HIDDEN = SHEET_HEIGHT;          // fully off-screen
+const POS_COLLAPSED = SHEET_HEIGHT - PEEK_HEIGHT; // peeking
+const POS_EXPANDED = 0;                   // fully open
+
+const SHEET_BG = "#162F22";
+const HANDLE_COLOR = "rgba(255,255,255,0.25)";
+const CHIP_BG = "rgba(255,255,255,0.12)";
+const MUTED = "rgba(255,255,255,0.55)";
+
 export default function NativeMapView() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState("Hamısı");
   const [selected, setSelected] = useState<Point | null>(null);
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Single animated value controls the sheet's vertical position
+  const sheetY = useRef(new Animated.Value(POS_HIDDEN)).current;
+  // Track last settled position so we can base drag from it
+  const baseY = useRef(POS_HIDDEN);
 
   const filtered =
     filter === "Hamısı"
       ? WASTE_COLLECTION_POINTS
       : WASTE_COLLECTION_POINTS.filter((p) => p.types.includes(filter));
 
+  function snapTo(pos: number, onDone?: () => void) {
+    baseY.current = pos;
+    Animated.spring(sheetY, {
+      toValue: pos,
+      useNativeDriver: true,
+      tension: 72,
+      friction: 11,
+    }).start(onDone);
+  }
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 4,
+      onPanResponderGrant: () => {
+        // Set offset so drag is relative to current position
+        sheetY.setOffset(baseY.current);
+        sheetY.setValue(0);
+      },
+      onPanResponderMove: (_, g) => {
+        const next = g.dy;
+        const min = POS_EXPANDED - baseY.current;
+        const max = POS_COLLAPSED - baseY.current;
+        sheetY.setValue(Math.max(min, Math.min(max, next)));
+      },
+      onPanResponderRelease: (_, g) => {
+        sheetY.flattenOffset();
+        const current = baseY.current + g.dy;
+        const mid = (POS_COLLAPSED + POS_EXPANDED) / 2;
+
+        if (g.vy < -0.5 || current < mid) {
+          // snap open
+          setIsExpanded(true);
+          snapTo(POS_EXPANDED);
+        } else {
+          // snap collapsed
+          setIsExpanded(false);
+          snapTo(POS_COLLAPSED);
+        }
+      },
+    })
+  ).current;
+
   const selectPoint = (point: Point) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelected(point);
-    Animated.spring(slideAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-      tension: 80,
-    }).start();
+    setIsExpanded(false);
+    // Start from hidden and spring into collapsed
+    sheetY.setValue(POS_HIDDEN);
+    snapTo(POS_COLLAPSED);
   };
 
   const closePanel = () => {
-    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true }).start(
-      () => setSelected(null),
-    );
+    setIsExpanded(false);
+    snapTo(POS_HIDDEN, () => setSelected(null));
   };
 
   const openMaps = () => {
@@ -63,13 +128,8 @@ export default function NativeMapView() {
     Linking.openURL(url);
   };
 
-  const panelTranslate = slideAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [320, 0],
-  });
-
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <View style={styles.root}>
       {/* Category filter chips */}
       <View style={[styles.filterBar, { top: insets.top + 8 }]}>
         <ScrollView
@@ -85,7 +145,8 @@ export default function NativeMapView() {
                 {
                   backgroundColor:
                     filter === cat ? colors.primary : colors.card,
-                  borderColor: filter === cat ? colors.primary : colors.border,
+                  borderColor:
+                    filter === cat ? colors.primary : colors.border,
                 },
               ]}
               onPress={() => setFilter(cat)}
@@ -102,7 +163,6 @@ export default function NativeMapView() {
           ))}
         </ScrollView>
 
-        {/* Point count badge */}
         <View style={[styles.countBadge, { backgroundColor: colors.primary }]}>
           <MaterialCommunityIcons name="map-marker" size={12} color="#FFFFFF" />
           <Text style={styles.countText}>{filtered.length} məntəqə</Text>
@@ -115,88 +175,124 @@ export default function NativeMapView() {
         showsUserLocation
         showsMyLocationButton
       >
-        {filtered.map((point) => {
-          return (
-            <Marker
-              key={point.id}
-              coordinate={{ latitude: point.lat, longitude: point.lng }}
-              onPress={() => selectPoint(point)}
+        {filtered.map((point) => (
+          <Marker
+            key={point.id}
+            coordinate={{ latitude: point.lat, longitude: point.lng }}
+            onPress={() => selectPoint(point)}
+          >
+            <View
+              style={[
+                styles.markerContainer,
+                { backgroundColor: colors.primary },
+              ]}
             >
-              <View
-                style={[
-                  styles.markerContainer,
-                  { backgroundColor: colors.primary },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="recycle"
-                  size={14}
-                  color="#FFFFFF"
-                />
-              </View>
-            </Marker>
-          );
-        })}
+              <MaterialCommunityIcons
+                name="recycle"
+                size={14}
+                color="#FFFFFF"
+              />
+            </View>
+          </Marker>
+        ))}
       </MapView>
 
-      {/* Detail panel */}
+      {/* ── Draggable bottom sheet ── */}
       {selected && (
         <Animated.View
           style={[
-            styles.panel,
+            styles.sheet,
             {
-              backgroundColor: colors.card,
-              paddingBottom: insets.bottom + 16,
-              transform: [{ translateY: panelTranslate }],
+              height: SHEET_HEIGHT,
+              transform: [{ translateY: sheetY }],
             },
           ]}
         >
-          <View style={styles.panelHandle} />
-          <Pressable onPress={closePanel} style={styles.closeBtn}>
-            <Feather name="x" size={20} color={colors.mutedForeground} />
+          {/* Drag handle — pan responder lives here */}
+          <View {...panResponder.panHandlers} style={styles.handleZone}>
+            <View style={[styles.handle, { backgroundColor: HANDLE_COLOR }]} />
+          </View>
+
+          {/* Close button */}
+          <Pressable onPress={closePanel} style={styles.closeBtn} hitSlop={10}>
+            <Feather name="x" size={20} color={MUTED} />
           </Pressable>
 
-          <Text style={[styles.panelTitle, { color: colors.foreground }]}>
-            {selected.name}
-          </Text>
-          <View style={styles.panelRow}>
-            <Feather name="map-pin" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.panelText, { color: colors.mutedForeground }]}>
-              {selected.address}
-            </Text>
-          </View>
-          <View style={styles.panelRow}>
-            <Feather name="clock" size={14} color={colors.mutedForeground} />
-            <Text style={[styles.panelText, { color: colors.mutedForeground }]}>
-              {selected.hours}
-            </Text>
-          </View>
-
-          <View style={styles.typeChips}>
-            {selected.types.map((t) => (
-              <View
-                key={t}
-                style={[
-                  styles.typeChip,
-                  {
-                    backgroundColor: colors.primary + "1A", // 10% şəffaflıq ilə primary rəngi
-                  },
-                ]}
-              >
-                <Text style={[styles.typeChipText, { color: colors.primary }]}>
-                  {t}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          <Pressable
-            onPress={openMaps}
-            style={[styles.directBtn, { backgroundColor: colors.primary }]}
+          {/* Scrollable content — only scrolls when expanded */}
+          <ScrollView
+            scrollEnabled={isExpanded}
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.content,
+              { paddingBottom: insets.bottom + 20 },
+            ]}
           >
-            <Feather name="navigation" size={16} color="#FFFFFF" />
-            <Text style={styles.directBtnText}>Yol Tarifini Al</Text>
-          </Pressable>
+            <Text style={styles.title}>{selected.name}</Text>
+
+            <View style={styles.infoRow}>
+              <Feather name="map-pin" size={14} color={MUTED} />
+              <Text style={styles.infoText}>{selected.address}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Feather name="clock" size={14} color={MUTED} />
+              <Text style={styles.infoText}>{selected.hours}</Text>
+            </View>
+
+            {/* Category chips */}
+            <View style={styles.chips}>
+              {selected.types.map((t) => (
+                <View key={t} style={styles.chip}>
+                  <Text style={styles.chipText}>{t}</Text>
+                </View>
+              ))}
+            </View>
+
+            {/* Expanded-only detail section */}
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionLabel}>Haqqında</Text>
+            <Text style={styles.bodyText}>
+              Bu məntəqədə zərərli tullantılar, elektrik cihazları və emal üçün
+              uyğun materiallar qəbul edilir. Zəhmət olmasa tullantıları
+              kateqoriyalara görə ayırılmış qablara atın.
+            </Text>
+
+            <Text style={[styles.sectionLabel, { marginTop: 16 }]}>
+              Əlaqə
+            </Text>
+            <View style={styles.infoRow}>
+              <Feather name="phone" size={14} color={MUTED} />
+              <Text style={styles.infoText}>+994 12 000 00 00</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Feather name="globe" size={14} color={MUTED} />
+              <Text style={styles.infoText}>ecotrack.az</Text>
+            </View>
+
+            {/* Directions button */}
+            <Pressable
+              onPress={openMaps}
+              style={[
+                styles.directBtn,
+                { backgroundColor: colors.primary, marginTop: 20 },
+              ]}
+            >
+              <Feather name="navigation" size={16} color="#FFFFFF" />
+              <Text style={styles.directBtnText}>Yol Tarifini Al</Text>
+            </Pressable>
+          </ScrollView>
+
+          {/* Hint shown only when collapsed */}
+          {!isExpanded && (
+            <View style={styles.expandHint} pointerEvents="none">
+              <Feather name="chevron-up" size={16} color={MUTED} />
+              <Text style={styles.expandHintText}>
+                Daha çox görmək üçün yuxarı çəkin
+              </Text>
+            </View>
+          )}
         </Animated.View>
       )}
     </View>
@@ -206,6 +302,7 @@ export default function NativeMapView() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   map: { flex: 1 },
+
   filterBar: {
     position: "absolute",
     left: 0,
@@ -220,7 +317,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.12,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -237,55 +334,130 @@ const styles = StyleSheet.create({
   },
   countText: { color: "#FFFFFF", fontSize: 11, fontWeight: "700" },
   markerContainer: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
     shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 3,
-    borderWidth: 1.5,
+    shadowRadius: 4,
+    elevation: 4,
+    borderWidth: 2,
     borderColor: "#FFFFFF",
   },
-  panel: {
+
+  // ── Bottom sheet ──
+  sheet: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: SHEET_BG,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 12,
-    gap: 10,
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 20,
+    overflow: "hidden",
   },
-  panelHandle: {
-    width: 40,
+  handleZone: {
+    alignItems: "center",
+    paddingTop: 14,
+    paddingBottom: 10,
+  },
+  handle: {
+    width: 44,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#C8E6C9",
-    alignSelf: "center",
-    marginBottom: 4,
   },
-  closeBtn: { position: "absolute", top: 16, right: 16, padding: 4 },
-  panelTitle: { fontSize: 17, fontWeight: "700", paddingRight: 28 },
-  panelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  panelText: { fontSize: 13, flex: 1 },
-  typeChips: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  typeChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
-  typeChipText: { fontSize: 12, fontWeight: "600" },
+  closeBtn: {
+    position: "absolute",
+    top: 14,
+    right: 18,
+    padding: 4,
+  },
+  content: {
+    paddingHorizontal: 22,
+    paddingTop: 4,
+  },
+  title: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 10,
+    paddingRight: 30,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginBottom: 6,
+  },
+  infoText: {
+    fontSize: 13,
+    color: MUTED,
+    flex: 1,
+    lineHeight: 18,
+  },
+  chips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 10,
+  },
+  chip: {
+    backgroundColor: CHIP_BG,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  chipText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "rgba(255,255,255,0.10)",
+    marginVertical: 16,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: MUTED,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  bodyText: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.70)",
+    lineHeight: 20,
+  },
   directBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    padding: 14,
-    borderRadius: 14,
-    marginTop: 4,
+    padding: 15,
+    borderRadius: 16,
   },
-  directBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  directBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  expandHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingBottom: 10,
+  },
+  expandHintText: {
+    color: MUTED,
+    fontSize: 11,
+  },
 });
