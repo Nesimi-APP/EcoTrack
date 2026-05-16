@@ -15,6 +15,7 @@ import {
   entriesNeededForLevel,
   totalEntriesForLevel,
 } from "@/context/AppContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useColors } from "@/hooks/useColors";
 import { api, type ApiLeaderboardEntry } from "@/lib/api";
 
@@ -33,6 +34,8 @@ function BadgeCard({
   };
 }) {
   const colors = useColors();
+  const { t } = useLanguage();
+  const localBadge = t.badges[badge.id];
   return (
     <View
       style={[
@@ -47,11 +50,7 @@ function BadgeCard({
       <View
         style={[
           styles.badgeIconCircle,
-          {
-            backgroundColor: badge.earned
-              ? badge.color + "22"
-              : colors.muted,
-          },
+          { backgroundColor: badge.earned ? badge.color + "22" : colors.muted },
         ]}
       >
         <Feather
@@ -63,7 +62,7 @@ function BadgeCard({
       {badge.earned && (
         <View style={[styles.earnedBanner, { backgroundColor: badge.color }]}>
           <Feather name="check" size={11} color="#fff" />
-          <Text style={styles.earnedBannerText}>Qazanıldı</Text>
+          <Text style={styles.earnedBannerText}>{t.achievements.earnedBadge}</Text>
         </View>
       )}
       <Text
@@ -72,10 +71,10 @@ function BadgeCard({
           { color: badge.earned ? colors.foreground : colors.mutedForeground },
         ]}
       >
-        {badge.name}
+        {localBadge?.name ?? badge.name}
       </Text>
       <Text style={[styles.badgeDesc, { color: colors.mutedForeground }]}>
-        {badge.description}
+        {localBadge?.description ?? badge.description}
       </Text>
     </View>
   );
@@ -89,6 +88,7 @@ function LeaderboardRow({
   index: number;
 }) {
   const colors = useColors();
+  const { t } = useLanguage();
   const medals = ["🥇", "🥈", "🥉"];
   const medal = index < 3 ? medals[index] : null;
 
@@ -97,9 +97,7 @@ function LeaderboardRow({
       style={[
         styles.lbRow,
         {
-          backgroundColor: item.isMe
-            ? colors.primary + "18"
-            : colors.background,
+          backgroundColor: item.isMe ? colors.primary + "18" : colors.background,
           borderColor: item.isMe ? colors.primary : colors.border,
         },
       ]}
@@ -111,17 +109,14 @@ function LeaderboardRow({
         <Text
           style={[
             styles.lbName,
-            {
-              color: colors.foreground,
-              fontWeight: item.isMe ? "800" : "600",
-            },
+            { color: colors.foreground, fontWeight: item.isMe ? "800" : "600" },
           ]}
         >
           {item.name}
-          {item.isMe ? "  (Siz)" : ""}
+          {item.isMe ? `  ${t.achievements.you}` : ""}
         </Text>
         <Text style={[styles.lbSub, { color: colors.mutedForeground }]}>
-          {item.entryCount} giriş
+          {item.entryCount} {t.achievements.entries}
         </Text>
       </View>
       <View style={{ alignItems: "flex-end" }}>
@@ -139,6 +134,7 @@ function LeaderboardRow({
 export default function AchievementsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const { userProfile, badges, entries, monthlyTotal, treesEquivalent } = useApp();
 
   const [leaderboard, setLeaderboard] = useState<ApiLeaderboardEntry[]>([]);
@@ -157,7 +153,7 @@ export default function AchievementsScreen() {
     neededThisLevel > 0
       ? Math.min(100, (progressInLevel / neededThisLevel) * 100)
       : 100;
-  const toNextLevel = neededThisLevel - progressInLevel;
+  const toNextLevel = Math.max(0, neededThisLevel - progressInLevel);
 
   const fetchLeaderboard = useCallback(() => {
     setLbLoading(true);
@@ -168,10 +164,8 @@ export default function AchievementsScreen() {
       .finally(() => setLbLoading(false));
   }, []);
 
-  // Refresh every time the tab is focused so other users' changes appear immediately
   useFocusEffect(fetchLeaderboard);
 
-  // Also re-fetch when the current user's entry count changes
   useEffect(() => {
     fetchLeaderboard();
   }, [entryCount]);
@@ -179,54 +173,42 @@ export default function AchievementsScreen() {
   return (
     <ScrollView
       style={{ backgroundColor: colors.background }}
-      contentContainerStyle={[
-        styles.container,
-        { paddingBottom: bottomPad + 20 },
-      ]}
+      contentContainerStyle={[styles.container, { paddingBottom: bottomPad + 20 }]}
       showsVerticalScrollIndicator={false}
     >
       {/* Level Card */}
       <View style={[styles.levelCard, { backgroundColor: colors.primary }]}>
         <View style={styles.levelRow}>
           <View>
-            <Text style={styles.levelLabel}>Cari Səviyyə</Text>
-            <Text style={styles.levelValue}>Səviyyə {currentLevel}</Text>
+            <Text style={styles.levelLabel}>{t.achievements.currentLevel}</Text>
+            <Text style={styles.levelValue}>{t.achievements.level} {currentLevel}</Text>
           </View>
           <View style={styles.streakBox}>
             <Feather name="zap" size={18} color="#FFD700" />
             <Text style={styles.streakNum}>{userProfile.streak}</Text>
-            <Text style={styles.streakLabel}>Ardıcıl gün</Text>
+            <Text style={styles.streakLabel}>{t.achievements.streak}</Text>
           </View>
         </View>
 
         <View style={styles.xpTrack}>
-          <View
-            style={[
-              styles.xpFill,
-              { width: `${entryCount === 0 ? 0 : xpPercent}%` },
-            ]}
-          />
+          <View style={[styles.xpFill, { width: `${entryCount === 0 ? 0 : xpPercent}%` }]} />
         </View>
 
         <View style={styles.nextLevelRow}>
           <Text style={styles.xpHint}>
-            {progressInLevel}/{neededThisLevel} giriş tamamlandı
+            {progressInLevel}/{neededThisLevel} {t.achievements.entriesCompleted}
           </Text>
           {currentLevel < TOTAL_LEVELS ? (
             <View style={styles.nextLevelBadge}>
-              <MaterialCommunityIcons
-                name="arrow-up-circle"
-                size={13}
-                color="#A5D6A7"
-              />
+              <MaterialCommunityIcons name="arrow-up-circle" size={13} color="#A5D6A7" />
               <Text style={styles.nextLevelText}>
-                {toNextLevel} giriş daha → Səviyyə {currentLevel + 1}
+                {toNextLevel} {t.achievements.moreEntries} {currentLevel + 1}
               </Text>
             </View>
           ) : (
             <View style={styles.nextLevelBadge}>
               <MaterialCommunityIcons name="crown" size={13} color="#FFD700" />
-              <Text style={styles.nextLevelText}>Maksimum səviyyə!</Text>
+              <Text style={styles.nextLevelText}>{t.achievements.maxLevel}</Text>
             </View>
           )}
         </View>
@@ -234,62 +216,48 @@ export default function AchievementsScreen() {
 
       {/* Eco Impact */}
       <View style={styles.statsRow}>
-        <View
-          style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
+        <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <MaterialCommunityIcons name="tree" size={28} color="#4CAF50" />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>
-            {treesEquivalent}
-          </Text>
+          <Text style={[styles.statValue, { color: colors.foreground }]}>{treesEquivalent}</Text>
           <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
-            Ağac qənaəti
+            {t.achievements.treesSaved}
           </Text>
         </View>
-        <View
-          style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
+        <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <MaterialCommunityIcons name="leaf" size={28} color={colors.primary} />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>
-            {monthlyTotal.toFixed(0)}
-          </Text>
+          <Text style={[styles.statValue, { color: colors.foreground }]}>{monthlyTotal.toFixed(0)}</Text>
           <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
-            kq CO₂ bu ay
+            {t.achievements.co2ThisMonth}
           </Text>
         </View>
-        <View
-          style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
+        <View style={[styles.statBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <MaterialCommunityIcons name="trophy" size={28} color="#FF9800" />
-          <Text style={[styles.statValue, { color: colors.foreground }]}>
-            {earned}/{badges.length}
-          </Text>
+          <Text style={[styles.statValue, { color: colors.foreground }]}>{earned}/{badges.length}</Text>
           <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
-            Nişan
+            {t.achievements.badge}
           </Text>
         </View>
       </View>
 
       {/* Leaderboard */}
-      <View
-        style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}
-      >
+      <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Karbon Sıralaması
+            {t.achievements.carbonRanking}
           </Text>
           <MaterialCommunityIcons name="podium" size={18} color="#FF9800" />
         </View>
         <Text style={[styles.lbDesc, { color: colors.mutedForeground }]}>
-          Aşağı CO₂ = daha yaxşı sıralama
+          {t.achievements.rankingDesc}
         </Text>
 
         {lbLoading ? (
           <Text style={[styles.lbEmpty, { color: colors.mutedForeground }]}>
-            Yüklənir...
+            {t.achievements.loading}
           </Text>
         ) : leaderboard.length === 0 ? (
           <Text style={[styles.lbEmpty, { color: colors.mutedForeground }]}>
-            Hələ heç bir istifadəçi yoxdur
+            {t.achievements.noUsers}
           </Text>
         ) : (
           leaderboard.map((item, i) => (
@@ -302,10 +270,10 @@ export default function AchievementsScreen() {
       <View>
         <View style={[styles.sectionHeader, { marginBottom: 10 }]}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Nişanlar
+            {t.achievements.badges}
           </Text>
           <Text style={[styles.sectionSub, { color: colors.mutedForeground }]}>
-            {earned}/{badges.length} qazanıldı
+            {earned}/{badges.length} {t.achievements.earned}
           </Text>
         </View>
         <View style={styles.badgeGrid}>
@@ -320,13 +288,8 @@ export default function AchievementsScreen() {
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 16 },
-
   levelCard: { borderRadius: 20, padding: 20, gap: 12 },
-  levelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+  levelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   levelLabel: { color: "rgba(255,255,255,0.7)", fontSize: 13 },
   levelValue: { color: "#FFFFFF", fontSize: 24, fontWeight: "800", marginTop: 2 },
   streakBox: {
@@ -344,11 +307,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   xpFill: { height: "100%", backgroundColor: "#FFFFFF", borderRadius: 5 },
-  nextLevelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+  nextLevelRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   xpHint: { color: "rgba(255,255,255,0.65)", fontSize: 12 },
   nextLevelBadge: {
     flexDirection: "row",
@@ -360,7 +319,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   nextLevelText: { color: "#A5D6A7", fontSize: 12, fontWeight: "600" },
-
   statsRow: { flexDirection: "row", gap: 10 },
   statBox: {
     flex: 1,
@@ -372,16 +330,10 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 22, fontWeight: "800" },
   statLabel: { fontSize: 11, textAlign: "center" },
-
   section: { borderRadius: 16, padding: 16, borderWidth: 1, gap: 10 },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   sectionTitle: { fontSize: 16, fontWeight: "700" },
   sectionSub: { fontSize: 12 },
-
   lbDesc: { fontSize: 12, marginTop: -4 },
   lbRow: {
     flexDirection: "row",
@@ -398,7 +350,6 @@ const styles = StyleSheet.create({
   lbSub: { fontSize: 11, marginTop: 2 },
   lbCO2: { fontSize: 16, fontWeight: "800" },
   lbEmpty: { fontSize: 14, textAlign: "center", paddingVertical: 16 },
-
   badgeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   badgeCard: {
     width: "47%",

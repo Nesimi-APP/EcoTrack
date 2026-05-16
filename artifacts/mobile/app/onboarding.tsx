@@ -21,31 +21,14 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LottieSlide } from "@/components/LottieSlide";
+import { useLanguage } from "@/context/LanguageContext";
 
 const { width } = Dimensions.get("window");
 
-const SLIDES = [
-  {
-    title: "İzinizi Görün",
-    subtitle:
-      "Gündəlik hərəkətlərinizin karbon ekosistemine necə təsir etdiyini real vaxtda izləyin.",
-    bg: "#1B5E20",
-    bg2: "#2D7A4F",
-  },
-  {
-    title: "Hərəkətə Keçin",
-    subtitle:
-      "Gündəlik vərdişlərinizi dəyişdirin. Küçük qərarlar böyük fərq yaradır.",
-    bg: "#1A3726",
-    bg2: "#4CAF50",
-  },
-  {
-    title: "Tullantıları İdarə Edin",
-    subtitle:
-      "Yaxınlığınızdakı e-tullantı toplama məntəqələrini tapın. Geri dönüşüm planetimizi xilas edir.",
-    bg: "#0D3B1B",
-    bg2: "#388E3C",
-  },
+const SLIDE_BGS = [
+  { bg: "#1B5E20", bg2: "#2D7A4F" },
+  { bg: "#1A3726", bg2: "#4CAF50" },
+  { bg: "#0D3B1B", bg2: "#388E3C" },
 ];
 
 function Dot({ active }: { active: boolean }) {
@@ -58,6 +41,7 @@ function Dot({ active }: { active: boolean }) {
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
   const scrollX = useSharedValue(0);
@@ -66,7 +50,7 @@ export default function OnboardingScreen() {
     backgroundColor: interpolateColor(
       scrollX.value / width,
       [0, 1, 2],
-      [SLIDES[0].bg, SLIDES[1].bg, SLIDES[2].bg],
+      [SLIDE_BGS[0].bg, SLIDE_BGS[1].bg, SLIDE_BGS[2].bg],
     ),
   }));
 
@@ -77,7 +61,7 @@ export default function OnboardingScreen() {
   };
 
   const handleNext = async () => {
-    if (currentIndex < SLIDES.length - 1) {
+    if (currentIndex < t.onboarding.slides.length - 1) {
       scrollRef.current?.scrollTo({
         x: (currentIndex + 1) * width,
         animated: true,
@@ -93,7 +77,7 @@ export default function OnboardingScreen() {
     router.replace("/(tabs)");
   };
 
-  const isLast = currentIndex === SLIDES.length - 1;
+  const isLast = currentIndex === t.onboarding.slides.length - 1;
   const topPad = Platform.OS === "web" ? 67 : insets.top;
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
@@ -102,7 +86,7 @@ export default function OnboardingScreen() {
       <View style={[styles.header, { paddingTop: topPad + 12 }]}>
         {!isLast && (
           <Pressable onPress={handleSkip} style={styles.skipBtn}>
-            <Text style={styles.skipText}>Atla</Text>
+            <Text style={styles.skipText}>{t.onboarding.skip}</Text>
           </Pressable>
         )}
       </View>
@@ -115,7 +99,7 @@ export default function OnboardingScreen() {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {SLIDES.map((slide, i) => (
+        {t.onboarding.slides.map((slide, i) => (
           <View key={i} style={[styles.slide, { width }]}>
             <LottieSlide scrollX={scrollX} index={i} />
             <View style={styles.textBlock}>
@@ -128,7 +112,7 @@ export default function OnboardingScreen() {
 
       <View style={[styles.footer, { paddingBottom: bottomPad + 20 }]}>
         <View style={styles.dots}>
-          {SLIDES.map((_, i) => (
+          {t.onboarding.slides.map((_, i) => (
             <Dot key={i} active={i === currentIndex} />
           ))}
         </View>
@@ -139,7 +123,9 @@ export default function OnboardingScreen() {
             { opacity: pressed ? 0.85 : 1 },
           ]}
         >
-          <Text style={styles.nextText}>{isLast ? "Başla" : "İrəli"}</Text>
+          <Text style={styles.nextText}>
+            {isLast ? t.onboarding.start : t.onboarding.next}
+          </Text>
         </Pressable>
       </View>
     </Animated.View>

@@ -17,9 +17,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function LoginScreen() {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
@@ -27,13 +29,12 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      Alert.alert("Xəta", "E-poçt və şifrəni daxil edin");
+      Alert.alert(t.auth.login.errorTitle, t.auth.login.errorFill);
       return;
     }
     setLoading(true);
     try {
       await login(email.trim(), password);
-      // Check onboarding
       const onboarded = await AsyncStorage.getItem("@ecotrack_onboarding");
       if (!onboarded) {
         router.replace("/onboarding");
@@ -42,8 +43,8 @@ export default function LoginScreen() {
       }
     } catch (err: unknown) {
       Alert.alert(
-        "Giriş uğursuz",
-        err instanceof Error ? err.message : "Xəta baş verdi"
+        t.auth.login.errorTitle,
+        err instanceof Error ? err.message : t.auth.login.errorGeneral
       );
     } finally {
       setLoading(false);
@@ -60,7 +61,6 @@ export default function LoginScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Hero */}
           <View style={styles.hero}>
             <View style={styles.iconWrap}>
               <Image
@@ -70,15 +70,14 @@ export default function LoginScreen() {
               />
             </View>
             <Text style={styles.appName}>EcoTrack</Text>
-            <Text style={styles.tagline}>Karbon İzi İzləyici</Text>
+            <Text style={styles.tagline}>{t.auth.tagline}</Text>
           </View>
 
-          {/* Card */}
           <View style={styles.card}>
-            <Text style={styles.heading}>Hesabınıza daxil olun</Text>
+            <Text style={styles.heading}>{t.auth.login.heading}</Text>
 
             <View style={styles.field}>
-              <Text style={styles.label}>E-poçt</Text>
+              <Text style={styles.label}>{t.auth.login.email}</Text>
               <View style={styles.inputWrap}>
                 <Feather name="mail" size={18} color="#7BAE8A" style={styles.inputIcon} />
                 <TextInput
@@ -95,7 +94,7 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Şifrə</Text>
+              <Text style={styles.label}>{t.auth.login.password}</Text>
               <View style={styles.inputWrap}>
                 <Feather name="lock" size={18} color="#7BAE8A" style={styles.inputIcon} />
                 <TextInput
@@ -119,13 +118,13 @@ export default function LoginScreen() {
               disabled={loading}
             >
               <Text style={styles.btnText}>
-                {loading ? "Giriş edilir..." : "Daxil ol"}
+                {loading ? t.auth.login.loggingIn : t.auth.login.loginBtn}
               </Text>
             </Pressable>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>və ya</Text>
+              <Text style={styles.dividerText}>{t.auth.login.or}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -133,7 +132,7 @@ export default function LoginScreen() {
               style={styles.secondaryBtn}
               onPress={() => router.push("/auth/register")}
             >
-              <Text style={styles.secondaryBtnText}>Yeni hesab yarat</Text>
+              <Text style={styles.secondaryBtnText}>{t.auth.login.createAccount}</Text>
             </Pressable>
           </View>
         </ScrollView>

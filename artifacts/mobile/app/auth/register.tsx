@@ -16,9 +16,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function RegisterScreen() {
   const { register } = useAuth();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,15 +30,15 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password) {
-      Alert.alert("Xəta", "Bütün sahələri doldurun");
+      Alert.alert(t.auth.register.errorTitle, t.auth.register.errorFill);
       return;
     }
     if (password.length < 6) {
-      Alert.alert("Xəta", "Şifrə ən az 6 simvol olmalıdır");
+      Alert.alert(t.auth.register.errorTitle, t.auth.register.errorShortPass);
       return;
     }
     if (password !== confirm) {
-      Alert.alert("Xəta", "Şifrələr uyğun gəlmir");
+      Alert.alert(t.auth.register.errorTitle, t.auth.register.errorPassMismatch);
       return;
     }
     setLoading(true);
@@ -45,8 +47,8 @@ export default function RegisterScreen() {
       router.replace("/auth/login");
     } catch (err: unknown) {
       Alert.alert(
-        "Qeydiyyat uğursuz",
-        err instanceof Error ? err.message : "Xəta baş verdi"
+        t.auth.register.errorTitle,
+        err instanceof Error ? err.message : t.auth.register.errorGeneral
       );
     } finally {
       setLoading(false);
@@ -63,7 +65,6 @@ export default function RegisterScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Hero */}
           <View style={styles.hero}>
             <View style={styles.iconWrap}>
               <Image
@@ -73,20 +74,19 @@ export default function RegisterScreen() {
               />
             </View>
             <Text style={styles.appName}>EcoTrack</Text>
-            <Text style={styles.tagline}>Hesab yaradın</Text>
+            <Text style={styles.tagline}>{t.auth.register.tagline}</Text>
           </View>
 
-          {/* Card */}
           <View style={styles.card}>
-            <Text style={styles.heading}>Yeni hesab</Text>
+            <Text style={styles.heading}>{t.auth.register.heading}</Text>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Ad</Text>
+              <Text style={styles.label}>{t.auth.register.name}</Text>
               <View style={styles.inputWrap}>
                 <Feather name="user" size={18} color="#7BAE8A" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Adınızı daxil edin"
+                  placeholder={t.auth.register.namePlaceholder}
                   placeholderTextColor="#A0B8A8"
                   value={name}
                   onChangeText={setName}
@@ -96,7 +96,7 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>E-poçt</Text>
+              <Text style={styles.label}>{t.auth.register.email}</Text>
               <View style={styles.inputWrap}>
                 <Feather name="mail" size={18} color="#7BAE8A" style={styles.inputIcon} />
                 <TextInput
@@ -113,12 +113,12 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Şifrə</Text>
+              <Text style={styles.label}>{t.auth.register.password}</Text>
               <View style={styles.inputWrap}>
                 <Feather name="lock" size={18} color="#7BAE8A" style={styles.inputIcon} />
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
-                  placeholder="Ən az 6 simvol"
+                  placeholder={t.auth.register.passwordPlaceholder}
                   placeholderTextColor="#A0B8A8"
                   value={password}
                   onChangeText={setPassword}
@@ -132,12 +132,12 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.label}>Şifrəni Təsdiqlə</Text>
+              <Text style={styles.label}>{t.auth.register.confirmPassword}</Text>
               <View style={styles.inputWrap}>
                 <Feather name="check-circle" size={18} color="#7BAE8A" style={styles.inputIcon} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Şifrəni yenidən daxil edin"
+                  placeholder={t.auth.register.confirmPlaceholder}
                   placeholderTextColor="#A0B8A8"
                   value={confirm}
                   onChangeText={setConfirm}
@@ -153,13 +153,13 @@ export default function RegisterScreen() {
               disabled={loading}
             >
               <Text style={styles.btnText}>
-                {loading ? "Qeydiyyat edilir..." : "Qeydiyyatdan keç"}
+                {loading ? t.auth.register.registering : t.auth.register.registerBtn}
               </Text>
             </Pressable>
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>artıq hesabınız var?</Text>
+              <Text style={styles.dividerText}>{t.auth.register.alreadyHaveAccount}</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -167,7 +167,7 @@ export default function RegisterScreen() {
               style={styles.secondaryBtn}
               onPress={() => router.back()}
             >
-              <Text style={styles.secondaryBtnText}>Daxil ol</Text>
+              <Text style={styles.secondaryBtnText}>{t.auth.register.loginLink}</Text>
             </Pressable>
           </View>
         </ScrollView>

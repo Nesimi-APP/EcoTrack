@@ -11,82 +11,43 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useColors } from "@/hooks/useColors";
 
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: "1",
-    type: "reminder",
-    title: "Karbon girişi xatırlatması",
-    body: "Bu gün karbon kalkulyatorunu yeniləməmisiniz!",
-    time: "2 saat əvvəl",
-    icon: "leaf",
-    color: "#4CAF50",
-  },
-  {
-    id: "2",
-    type: "achievement",
-    title: "Təbrikler!",
-    body: "Bu həftə karbon izinizi 10% azaltdınız.",
-    time: "1 gün əvvəl",
-    icon: "trophy",
-    color: "#FFD700",
-  },
-  {
-    id: "3",
-    type: "ewaste",
-    title: "Yeni toplama məntəqəsi",
-    body: "Yaxınlığınızda yeni bir e-tullantı toplama məntəqəsi açıldı.",
-    time: "3 gün əvvəl",
-    icon: "recycle",
-    color: "#2196F3",
-  },
-  {
-    id: "4",
-    type: "tip",
-    title: "Günün məsləhəti",
-    body: "Velosiped sürərək işə getmək gündə 4.6 kq CO₂ azaldır.",
-    time: "4 gün əvvəl",
-    icon: "lightbulb-on",
-    color: "#FF9800",
-  },
-  {
-    id: "5",
-    type: "reminder",
-    title: "Həftəlik hesabat",
-    body: "Bu həftəki karbon iziniz: 12.4 kq CO₂. Hədəfinizin 60%-ni qənaət etdiniz.",
-    time: "1 həftə əvvəl",
-    icon: "chart-line",
-    color: "#9C27B0",
-  },
+const NOTIF_META = [
+  { id: "1", type: "reminder", icon: "leaf", color: "#4CAF50" },
+  { id: "2", type: "achievement", icon: "trophy", color: "#FFD700" },
+  { id: "3", type: "ewaste", icon: "recycle", color: "#2196F3" },
+  { id: "4", type: "tip", icon: "lightbulb-on", color: "#FF9800" },
+  { id: "5", type: "reminder", icon: "chart-line", color: "#9C27B0" },
 ];
 
 export default function NotificationsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const { t } = useLanguage();
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  const [dismissed, setDismissed] = useState<string[]>([]);
+  const visible = NOTIF_META.filter((n) => !dismissed.includes(n.id));
 
   const handleDelete = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    setDismissed((prev) => [...prev, id]);
   };
 
   const handleClearAll = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    setNotifications([]);
+    setDismissed(NOTIF_META.map((n) => n.id));
   };
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={[
-        styles.container,
-        { paddingBottom: bottomPad + 20 },
-      ]}
+      contentContainerStyle={[styles.container, { paddingBottom: bottomPad + 20 }]}
       showsVerticalScrollIndicator={false}
     >
-      {notifications.length > 0 && (
+      {visible.length > 0 && (
         <Pressable
           onPress={handleClearAll}
           style={({ pressed }) => [
@@ -96,12 +57,12 @@ export default function NotificationsScreen() {
         >
           <Feather name="trash-2" size={14} color={colors.destructive} />
           <Text style={[styles.clearAllText, { color: colors.destructive }]}>
-            Hamısını sil
+            {t.notifications.clearAll}
           </Text>
         </Pressable>
       )}
 
-      {notifications.length === 0 ? (
+      {visible.length === 0 ? (
         <View style={styles.empty}>
           <MaterialCommunityIcons
             name="bell-off-outline"
@@ -109,55 +70,51 @@ export default function NotificationsScreen() {
             color={colors.mutedForeground}
           />
           <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-            Bildiriş yoxdur
+            {t.notifications.empty}
           </Text>
-          <Text
-            style={[styles.emptyText, { color: colors.mutedForeground }]}
-          >
-            Yeni bildirişlər burada görünəcək
+          <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
+            {t.notifications.emptyDesc}
           </Text>
         </View>
       ) : (
-        notifications.map((notif) => (
-          <View
-            key={notif.id}
-            style={[
-              styles.card,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
+        visible.map((notif) => {
+          const item = t.notifications.items[parseInt(notif.id) - 1];
+          return (
             <View
+              key={notif.id}
               style={[
-                styles.iconCircle,
-                { backgroundColor: notif.color + "20" },
+                styles.card,
+                { backgroundColor: colors.card, borderColor: colors.border },
               ]}
             >
-              <MaterialCommunityIcons
-                name={notif.icon as any}
-                size={22}
-                color={notif.color}
-              />
+              <View style={[styles.iconCircle, { backgroundColor: notif.color + "20" }]}>
+                <MaterialCommunityIcons
+                  name={notif.icon as any}
+                  size={22}
+                  color={notif.color}
+                />
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Text style={[styles.title, { color: colors.foreground }]}>
+                  {item.title}
+                </Text>
+                <Text style={[styles.body, { color: colors.mutedForeground }]}>
+                  {item.body}
+                </Text>
+                <Text style={[styles.time, { color: colors.mutedForeground }]}>
+                  {item.time}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => handleDelete(notif.id)}
+                hitSlop={10}
+                style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 4 })}
+              >
+                <Feather name="x" size={18} color={colors.mutedForeground} />
+              </Pressable>
             </View>
-            <View style={{ flex: 1, gap: 3 }}>
-              <Text style={[styles.title, { color: colors.foreground }]}>
-                {notif.title}
-              </Text>
-              <Text style={[styles.body, { color: colors.mutedForeground }]}>
-                {notif.body}
-              </Text>
-              <Text style={[styles.time, { color: colors.mutedForeground }]}>
-                {notif.time}
-              </Text>
-            </View>
-            <Pressable
-              onPress={() => handleDelete(notif.id)}
-              hitSlop={10}
-              style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: 4 })}
-            >
-              <Feather name="x" size={18} color={colors.mutedForeground} />
-            </Pressable>
-          </View>
-        ))
+          );
+        })
       )}
     </ScrollView>
   );
@@ -177,11 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   clearAllText: { fontSize: 13, fontWeight: "600" },
-  empty: {
-    marginTop: 80,
-    alignItems: "center",
-    gap: 10,
-  },
+  empty: { marginTop: 80, alignItems: "center", gap: 10 },
   emptyTitle: { fontSize: 17, fontWeight: "700" },
   emptyText: { fontSize: 14, textAlign: "center" },
   card: {

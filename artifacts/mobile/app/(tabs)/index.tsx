@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CircularProgress } from "@/components/CircularProgress";
 import { useApp } from "@/context/AppContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { MONTHLY_TARGET_KG } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
 
@@ -30,8 +31,9 @@ function EntryRow({
   };
 }) {
   const colors = useColors();
+  const { t } = useLanguage();
   const d = new Date(item.date);
-  const dateStr = `${d.getDate()} ${["Yan", "Fev", "Mar", "Apr", "May", "İyn", "İyl", "Avq", "Sen", "Okt", "Noy", "Dek"][d.getMonth()]}`;
+  const dateStr = `${d.getDate()} ${t.dashboard.months[d.getMonth()]}`;
   return (
     <Pressable
       onPress={() => router.push("/entries")}
@@ -51,7 +53,7 @@ function EntryRow({
       </View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.entryLabel, { color: colors.foreground }]}>
-          {dateStr} — Gündəlik giriş
+          {dateStr} — {t.dashboard.dailyEntry}
         </Text>
         <Text
           style={[styles.entrySubLabel, { color: colors.mutedForeground }]}
@@ -70,6 +72,7 @@ function EntryRow({
 export default function DashboardScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const {
     entries,
     userProfile,
@@ -101,9 +104,9 @@ export default function DashboardScreen() {
         >
           <View style={styles.headerRow}>
             <View>
-              <Text style={styles.greeting}>Salam, {userProfile.name}</Text>
+              <Text style={styles.greeting}>{t.dashboard.greeting}, {userProfile.name}</Text>
               <Text style={styles.subGreeting}>
-                Səviyyə {userProfile.level} · {userProfile.streak} gün ard.
+                {t.dashboard.level} {userProfile.level} · {userProfile.streak} {t.dashboard.streakDays}
               </Text>
             </View>
             <Pressable
@@ -128,10 +131,10 @@ export default function DashboardScreen() {
               fontSize={32}
             />
             <View style={styles.progressInfo}>
-              <Text style={styles.progressTitle}>Bu Ay</Text>
+              <Text style={styles.progressTitle}>{t.dashboard.thisMonth}</Text>
               <Text style={styles.progressPct}>{progressPercent}%</Text>
               <Text style={styles.progressSub}>
-                Hədəf: {MONTHLY_TARGET_KG} kq
+                {t.dashboard.target}: {MONTHLY_TARGET_KG} kq
               </Text>
               <View style={styles.treesRow}>
                 <MaterialCommunityIcons
@@ -140,7 +143,7 @@ export default function DashboardScreen() {
                   color="#A5D6A7"
                 />
                 <Text style={styles.treesText}>
-                  {treesEquivalent} ağac qənaəti
+                  {treesEquivalent} {t.dashboard.treesSaved}
                 </Text>
               </View>
             </View>
@@ -163,7 +166,7 @@ export default function DashboardScreen() {
               color={colors.primary}
             />
             <Text style={[styles.tipBadgeText, { color: colors.primary }]}>
-              Günün məsləhəti
+              {t.dashboard.tip}
             </Text>
           </View>
           <Text style={[styles.tipText, { color: colors.foreground }]}>
@@ -179,7 +182,7 @@ export default function DashboardScreen() {
           ]}
         >
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Həftəlik Karbon İzi
+            {t.dashboard.weeklyChart}
           </Text>
           <View style={styles.barChart}>
             {weeklyData.map((d, i) => {
@@ -213,12 +216,12 @@ export default function DashboardScreen() {
         {/* Recent Entries */}
         <View style={styles.recentHeader}>
           <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-            Son Girişlər
+            {t.dashboard.recentEntries}
           </Text>
           {entries.length > 0 && (
             <Pressable onPress={() => router.push("/entries")}>
               <Text style={[styles.seeAll, { color: colors.primary }]}>
-                Hamısı →
+                {t.dashboard.seeAll}
               </Text>
             </Pressable>
           )}
@@ -237,12 +240,12 @@ export default function DashboardScreen() {
               color={colors.mutedForeground}
             />
             <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              Hələ giriş yoxdur
+              {t.dashboard.noEntries}
             </Text>
             <Text
               style={[styles.emptyText, { color: colors.mutedForeground }]}
             >
-              Kalkulyatordan ilk karbon girişinizi əlavə edin
+              {t.dashboard.noEntriesDesc}
             </Text>
           </View>
         ) : (

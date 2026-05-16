@@ -8,29 +8,31 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
+import { useLanguage } from "@/context/LanguageContext";
 
 function NativeTabLayout() {
+  const { t } = useLanguage();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Ana Səhifə</Label>
+        <Label>{t.tabs.home}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="calculator">
         <Icon sf={{ default: "function", selected: "function" }} />
-        <Label>Kalkulyator</Label>
+        <Label>{t.tabs.calculator}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="map">
         <Icon sf={{ default: "map", selected: "map.fill" }} />
-        <Label>Xəritə</Label>
+        <Label>{t.tabs.map}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="achievements">
         <Icon sf={{ default: "trophy", selected: "trophy.fill" }} />
-        <Label>Nailiyyətlər</Label>
+        <Label>{t.tabs.achievements}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person.circle", selected: "person.circle.fill" }} />
-        <Label>Profil</Label>
+        <Label>{t.tabs.profile}</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -38,6 +40,7 @@ function NativeTabLayout() {
 
 function ClassicTabLayout() {
   const colors = useColors();
+  const { t } = useLanguage();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
@@ -75,7 +78,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Ana Səhifə",
+          title: t.tabs.home,
           headerShown: false,
           tabBarIcon: ({ color }) =>
             isIOS ? (
@@ -88,7 +91,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="calculator"
         options={{
-          title: "Kalkulyator",
+          title: t.tabs.calculator,
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="function" tintColor={color} size={24} />
@@ -100,7 +103,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="map"
         options={{
-          title: "Xəritə",
+          title: t.tabs.map,
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="map" tintColor={color} size={24} />
@@ -112,7 +115,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="achievements"
         options={{
-          title: "Nailiyyətlər",
+          title: t.tabs.achievements,
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="trophy" tintColor={color} size={24} />
@@ -124,7 +127,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profil",
+          title: t.tabs.profile,
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="person.circle" tintColor={color} size={24} />

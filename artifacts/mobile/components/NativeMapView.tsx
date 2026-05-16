@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { WASTE_CATEGORIES, WASTE_COLLECTION_POINTS } from "@/data/ecoData";
+import { useLanguage } from "@/context/LanguageContext";
 import { useColors } from "@/hooks/useColors";
 
 export default function NativeMapView() {
   const colors = useColors();
+  const { t } = useLanguage();
   const [filter, setFilter] = useState("Hamısı");
 
   const filtered =
@@ -16,7 +18,6 @@ export default function NativeMapView() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      {/* Filter chips — same system as native map */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -30,99 +31,53 @@ export default function NativeMapView() {
             style={[
               styles.chip,
               {
-                backgroundColor:
-                  filter === cat ? colors.primary : colors.card,
-                borderColor:
-                  filter === cat ? colors.primary : colors.border,
+                backgroundColor: filter === cat ? colors.primary : colors.card,
+                borderColor: filter === cat ? colors.primary : colors.border,
               },
             ]}
           >
-            <Text
-              style={[
-                styles.chipText,
-                { color: filter === cat ? "#FFFFFF" : colors.foreground },
-              ]}
-            >
+            <Text style={[styles.chipText, { color: filter === cat ? "#FFFFFF" : colors.foreground }]}>
               {cat}
             </Text>
           </Pressable>
         ))}
       </ScrollView>
 
-      <ScrollView
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
-          <MaterialCommunityIcons
-            name="map-marker-radius"
-            size={48}
-            color={colors.primary}
-          />
+          <MaterialCommunityIcons name="map-marker-radius" size={48} color={colors.primary} />
           <Text style={[styles.heroTitle, { color: colors.foreground }]}>
-            E-Tullantı Məntəqələri
+            {t.map.allLocationsTitle}
           </Text>
           <Text style={[styles.heroSub, { color: colors.mutedForeground }]}>
-            {filtered.length} məntəqə tapıldı
+            {filtered.length} {t.map.locationsFound}
           </Text>
         </View>
 
         {filtered.length === 0 ? (
           <View style={styles.empty}>
-            <MaterialCommunityIcons
-              name="map-marker-off-outline"
-              size={40}
-              color={colors.mutedForeground}
-            />
+            <MaterialCommunityIcons name="map-marker-off-outline" size={40} color={colors.mutedForeground} />
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Bu kateqoriyada məntəqə yoxdur
+              {t.map.noLocations}
             </Text>
           </View>
         ) : (
           filtered.map((p) => (
             <View
               key={p.id}
-              style={[
-                styles.card,
-                { backgroundColor: colors.card, borderColor: colors.border },
-              ]}
+              style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
-              <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: colors.secondary },
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="recycle"
-                  size={20}
-                  color={colors.primary}
-                />
+              <View style={[styles.iconCircle, { backgroundColor: colors.secondary }]}>
+                <MaterialCommunityIcons name="recycle" size={20} color={colors.primary} />
               </View>
               <View style={{ flex: 1, gap: 4 }}>
-                <Text style={[styles.name, { color: colors.foreground }]}>
-                  {p.name}
-                </Text>
-                <Text style={[styles.addr, { color: colors.mutedForeground }]}>
-                  {p.address}
-                </Text>
-                <Text style={[styles.hours, { color: colors.mutedForeground }]}>
-                  {p.hours}
-                </Text>
+                <Text style={[styles.name, { color: colors.foreground }]}>{p.name}</Text>
+                <Text style={[styles.addr, { color: colors.mutedForeground }]}>{p.address}</Text>
+                <Text style={[styles.hours, { color: colors.mutedForeground }]}>{p.hours}</Text>
                 <View style={styles.chips}>
-                  {p.types.map((t) => (
-                    <View
-                      key={t}
-                      style={[
-                        styles.typeChip,
-                        { backgroundColor: colors.secondary },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.typeChipText, { color: colors.primary }]}
-                      >
-                        {t}
-                      </Text>
+                  {p.types.map((tp) => (
+                    <View key={tp} style={[styles.typeChip, { backgroundColor: colors.secondary }]}>
+                      <Text style={[styles.typeChipText, { color: colors.primary }]}>{tp}</Text>
                     </View>
                   ))}
                 </View>
@@ -140,12 +95,7 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   chipBar: { flexGrow: 0, borderBottomWidth: 1 },
   chipScroll: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
+  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
   chipText: { fontSize: 13, fontWeight: "600" },
   list: { padding: 16, gap: 10 },
   hero: { alignItems: "center", gap: 6, paddingVertical: 12 },

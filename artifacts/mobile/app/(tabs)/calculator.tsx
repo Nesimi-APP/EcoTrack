@@ -19,6 +19,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { CARBON_FACTORS } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
 
@@ -26,27 +27,28 @@ type TabKey = "transport" | "energy" | "food";
 type VehicleKey = keyof typeof CARBON_FACTORS.transport;
 type FoodKey = keyof typeof CARBON_FACTORS.food;
 
-const TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: "transport", label: "Nəqliyyat", icon: "car" },
-  { key: "energy", label: "Enerji", icon: "lightning-bolt" },
-  { key: "food", label: "Qida", icon: "food-apple" },
+const TAB_KEYS: TabKey[] = ["transport", "energy", "food"];
+const TAB_ICONS: Record<TabKey, string> = {
+  transport: "car",
+  energy: "lightning-bolt",
+  food: "food-apple",
+};
+
+const VEHICLE_KEYS: { key: VehicleKey; icon: string }[] = [
+  { key: "car_petrol", icon: "car" },
+  { key: "car_electric", icon: "car-electric" },
+  { key: "bus", icon: "bus" },
+  { key: "metro", icon: "subway" },
+  { key: "motorcycle", icon: "motorbike" },
 ];
 
-const VEHICLES: { key: VehicleKey; label: string; icon: string }[] = [
-  { key: "car_petrol", label: "Benzin", icon: "car" },
-  { key: "car_electric", label: "Elektrik", icon: "car-electric" },
-  { key: "bus", label: "Avtobus", icon: "bus" },
-  { key: "metro", label: "Metro", icon: "subway" },
-  { key: "motorcycle", label: "Moto", icon: "motorbike" },
-];
-
-const FOODS: { key: FoodKey; label: string; icon: string }[] = [
-  { key: "beef", label: "Mal əti", icon: "cow" },
-  { key: "lamb", label: "Quzu əti", icon: "sheep" },
-  { key: "pork", label: "Donuz əti", icon: "pig" },
-  { key: "chicken", label: "Toyuq", icon: "food-drumstick" },
-  { key: "fish", label: "Balıq", icon: "fish" },
-  { key: "vegan", label: "Vegan", icon: "sprout" },
+const FOOD_KEYS: { key: FoodKey; icon: string }[] = [
+  { key: "beef", icon: "cow" },
+  { key: "lamb", icon: "sheep" },
+  { key: "pork", icon: "pig" },
+  { key: "chicken", icon: "food-drumstick" },
+  { key: "fish", icon: "fish" },
+  { key: "vegan", icon: "sprout" },
 ];
 
 function AnimatedCO2({ value, color }: { value: number; color: string }) {
@@ -68,6 +70,7 @@ export default function CalculatorScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { addEntry } = useApp();
+  const { t } = useLanguage();
 
   const [activeTab, setActiveTab] = useState<TabKey>("transport");
   const [distance, setDistance] = useState("");
@@ -119,38 +122,38 @@ export default function CalculatorScreen() {
 
         {/* CO2 Display */}
         <View style={[styles.co2Card, { backgroundColor: colors.primary }]}>
-          <Text style={styles.co2Label}>Bu tab üzrə CO₂</Text>
+          <Text style={styles.co2Label}>{t.calculator.co2Display}</Text>
           <AnimatedCO2 value={getTabCO2()} color="#FFFFFF" />
           <Text style={styles.co2Unit}>kq CO₂</Text>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Cəmi: </Text>
+            <Text style={styles.totalLabel}>{t.calculator.total}: </Text>
             <Text style={styles.totalValue}>{totalCO2.toFixed(2)} kq</Text>
           </View>
         </View>
 
         {/* Tabs */}
         <View style={[styles.tabs, { backgroundColor: colors.secondary }]}>
-          {TABS.map((tab) => (
+          {TAB_KEYS.map((key) => (
             <Pressable
-              key={tab.key}
+              key={key}
               style={[
                 styles.tab,
-                activeTab === tab.key && { backgroundColor: colors.primary },
+                activeTab === key && { backgroundColor: colors.primary },
               ]}
-              onPress={() => setActiveTab(tab.key)}
+              onPress={() => setActiveTab(key)}
             >
               <MaterialCommunityIcons
-                name={tab.icon as any}
+                name={TAB_ICONS[key] as any}
                 size={18}
-                color={activeTab === tab.key ? "#FFFFFF" : colors.mutedForeground}
+                color={activeTab === key ? "#FFFFFF" : colors.mutedForeground}
               />
               <Text
                 style={[
                   styles.tabText,
-                  { color: activeTab === tab.key ? "#FFFFFF" : colors.mutedForeground },
+                  { color: activeTab === key ? "#FFFFFF" : colors.mutedForeground },
                 ]}
               >
-                {tab.label}
+                {t.calculator.tabs[key]}
               </Text>
             </Pressable>
           ))}
@@ -159,7 +162,7 @@ export default function CalculatorScreen() {
         {/* Transport */}
         {activeTab === "transport" && (
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Məsafə (km)</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>{t.calculator.transport.distance}</Text>
             <TextInput
               style={inputStyle}
               value={distance}
@@ -168,9 +171,9 @@ export default function CalculatorScreen() {
               placeholder="0"
               placeholderTextColor={colors.mutedForeground}
             />
-            <Text style={[styles.label, { color: colors.foreground }]}>Nəqliyyat növü</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>{t.calculator.transport.vehicleType}</Text>
             <View style={styles.chipGrid}>
-              {VEHICLES.map((v) => (
+              {VEHICLE_KEYS.map((v) => (
                 <Pressable
                   key={v.key}
                   style={[
@@ -186,7 +189,7 @@ export default function CalculatorScreen() {
                     color={vehicle === v.key ? "#FFFFFF" : colors.mutedForeground}
                   />
                   <Text style={[styles.chipText, { color: vehicle === v.key ? "#FFFFFF" : colors.foreground }]}>
-                    {v.label}
+                    {t.calculator.transport.vehicles[v.key]}
                   </Text>
                 </Pressable>
               ))}
@@ -203,7 +206,7 @@ export default function CalculatorScreen() {
         {/* Energy */}
         {activeTab === "energy" && (
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Elektrik (kVt·saat)</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>{t.calculator.energy.electricity}</Text>
             <TextInput
               style={inputStyle}
               value={electricity}
@@ -212,7 +215,7 @@ export default function CalculatorScreen() {
               placeholder="0"
               placeholderTextColor={colors.mutedForeground}
             />
-            <Text style={[styles.label, { color: colors.foreground }]}>Qaz (m³)</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>{t.calculator.energy.gas}</Text>
             <TextInput
               style={inputStyle}
               value={gas}
@@ -224,7 +227,7 @@ export default function CalculatorScreen() {
             <View style={[styles.infoBox, { backgroundColor: colors.secondary }]}>
               <MaterialCommunityIcons name="information-outline" size={14} color={colors.mutedForeground} />
               <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-                Elektrik: 0.233 kq/kVt · Qaz: 2.04 kq/m³
+                {t.calculator.energy.info}
               </Text>
             </View>
           </View>
@@ -233,9 +236,9 @@ export default function CalculatorScreen() {
         {/* Food */}
         {activeTab === "food" && (
           <View style={styles.section}>
-            <Text style={[styles.label, { color: colors.foreground }]}>Qida növü</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>{t.calculator.food.foodType}</Text>
             <View style={styles.chipGrid}>
-              {FOODS.map((f) => (
+              {FOOD_KEYS.map((f) => (
                 <Pressable
                   key={f.key}
                   style={[
@@ -251,12 +254,12 @@ export default function CalculatorScreen() {
                     color={foodType === f.key ? "#FFFFFF" : colors.mutedForeground}
                   />
                   <Text style={[styles.chipText, { color: foodType === f.key ? "#FFFFFF" : colors.foreground }]}>
-                    {f.label}
+                    {t.calculator.food.foods[f.key]}
                   </Text>
                 </Pressable>
               ))}
             </View>
-            <Text style={[styles.label, { color: colors.foreground }]}>Yemək sayı</Text>
+            <Text style={[styles.label, { color: colors.foreground }]}>{t.calculator.food.mealCount}</Text>
             <TextInput
               style={inputStyle}
               value={meals}
@@ -284,7 +287,7 @@ export default function CalculatorScreen() {
             color="#FFFFFF"
           />
           <Text style={styles.saveBtnText}>
-            {saved ? "Saxlanıldı!" : "Girişi Saxla"}
+            {saved ? t.calculator.saved : t.calculator.save}
           </Text>
         </Pressable>
       </ScrollView>

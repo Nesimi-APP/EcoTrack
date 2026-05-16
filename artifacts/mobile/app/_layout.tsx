@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { AppProvider } from "@/context/AppContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider, useLanguage } from "@/context/LanguageContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -26,6 +27,7 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (isLoading) return;
@@ -43,7 +45,7 @@ function RootLayoutNav() {
   }, [isLoading, user]);
 
   return (
-    <Stack screenOptions={{ headerBackTitle: "Geri" }}>
+    <Stack screenOptions={{ headerBackTitle: t.nav.back }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="onboarding"
@@ -59,15 +61,15 @@ function RootLayoutNav() {
       />
       <Stack.Screen
         name="notifications"
-        options={{ title: "Bildirişlər", headerTintColor: "#2D7A4F" }}
+        options={{ title: t.nav.notifications, headerTintColor: "#2D7A4F" }}
       />
       <Stack.Screen
         name="entries"
-        options={{ title: "Bütün Girişlər", headerTintColor: "#2D7A4F" }}
+        options={{ title: t.nav.entries, headerTintColor: "#2D7A4F" }}
       />
       <Stack.Screen
         name="wiki"
-        options={{ title: "Eko-Vikipediya", headerTintColor: "#2D7A4F" }}
+        options={{ title: t.nav.wiki, headerTintColor: "#2D7A4F" }}
       />
       <Stack.Screen
         name="wiki/[id]"
@@ -115,17 +117,19 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <ThemeProvider>
-              <AppProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardProvider>
-                    <RootLayoutNav />
-                  </KeyboardProvider>
-                </GestureHandlerRootView>
-              </AppProvider>
-            </ThemeProvider>
-          </AuthProvider>
+          <LanguageProvider>
+            <AuthProvider>
+              <ThemeProvider>
+                <AppProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <KeyboardProvider>
+                      <RootLayoutNav />
+                    </KeyboardProvider>
+                  </GestureHandlerRootView>
+                </AppProvider>
+              </ThemeProvider>
+            </AuthProvider>
+          </LanguageProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

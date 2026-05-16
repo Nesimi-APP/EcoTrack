@@ -13,23 +13,26 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useApp } from "@/context/AppContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { useColors } from "@/hooks/useColors";
 
-const MONTHS = [
-  "Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
-  "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr",
-];
-
-function formatDate(iso: string) {
+function formatDate(iso: string, months: string[]) {
   const d = new Date(iso);
-  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
 }
 
 export default function EntriesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { entries, deleteEntry } = useApp();
+  const { t } = useLanguage();
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
+
+  // Full month names derived from dashboard short names — use a full set
+  const fullMonths = [
+    "Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
+    "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr",
+  ];
 
   const handleDelete = (id: string) => {
     if (Platform.OS === "web") {
@@ -37,12 +40,12 @@ export default function EntriesScreen() {
       return;
     }
     Alert.alert(
-      "Girişi Sil",
-      "Bu girişi silmək istədiyinizə əminsiniz?",
+      t.entries.deleteTitle,
+      t.entries.deleteConfirm,
       [
-        { text: "Ləğv et", style: "cancel" },
+        { text: t.entries.cancel, style: "cancel" },
         {
-          text: "Sil",
+          text: t.entries.delete,
           style: "destructive",
           onPress: () => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -62,10 +65,10 @@ export default function EntriesScreen() {
           color={colors.mutedForeground}
         />
         <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-          Hələ giriş yoxdur
+          {t.entries.noEntries}
         </Text>
         <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-          Kalkulyatordan ilk karbon girişinizi əlavə edin
+          {t.entries.noEntriesDesc}
         </Text>
       </View>
     );
@@ -81,15 +84,10 @@ export default function EntriesScreen() {
       showsVerticalScrollIndicator={false}
     >
       {/* Summary */}
-      <View
-        style={[
-          styles.summary,
-          { backgroundColor: colors.primary },
-        ]}
-      >
-        <Text style={styles.summaryCount}>{entries.length} giriş</Text>
+      <View style={[styles.summary, { backgroundColor: colors.primary }]}>
+        <Text style={styles.summaryCount}>{entries.length} {t.entries.entries}</Text>
         <Text style={styles.summaryTotal}>
-          Cəmi: {entries.reduce((s, e) => s + e.total, 0).toFixed(1)} kq CO₂
+          {t.entries.total}: {entries.reduce((s, e) => s + e.total, 0).toFixed(1)} kq CO₂
         </Text>
       </View>
 
@@ -104,19 +102,13 @@ export default function EntriesScreen() {
               { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
-            {/* Header row */}
             <View style={styles.cardHeader}>
               <View style={styles.dateWrap}>
                 {isToday && (
-                  <View
-                    style={[
-                      styles.todayDot,
-                      { backgroundColor: colors.accent },
-                    ]}
-                  />
+                  <View style={[styles.todayDot, { backgroundColor: colors.accent }]} />
                 )}
                 <Text style={[styles.dateText, { color: colors.mutedForeground }]}>
-                  {formatDate(entry.date)}
+                  {formatDate(entry.date, fullMonths)}
                 </Text>
               </View>
               <Pressable
@@ -124,74 +116,35 @@ export default function EntriesScreen() {
                 hitSlop={8}
                 style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
               >
-                <Feather
-                  name="trash-2"
-                  size={16}
-                  color={colors.destructive}
-                />
+                <Feather name="trash-2" size={16} color={colors.destructive} />
               </Pressable>
             </View>
 
-            {/* Total */}
             <Text style={[styles.total, { color: colors.primary }]}>
               {entry.total.toFixed(2)} kq CO₂
             </Text>
 
-            {/* Breakdown */}
             <View style={styles.breakdown}>
               {entry.transport > 0 && (
-                <View
-                  style={[
-                    styles.breakItem,
-                    { backgroundColor: colors.secondary },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="car"
-                    size={13}
-                    color={colors.primary}
-                  />
-                  <Text
-                    style={[styles.breakText, { color: colors.foreground }]}
-                  >
+                <View style={[styles.breakItem, { backgroundColor: colors.secondary }]}>
+                  <MaterialCommunityIcons name="car" size={13} color={colors.primary} />
+                  <Text style={[styles.breakText, { color: colors.foreground }]}>
                     {entry.transport.toFixed(2)} kq
                   </Text>
                 </View>
               )}
               {entry.energy > 0 && (
-                <View
-                  style={[
-                    styles.breakItem,
-                    { backgroundColor: colors.secondary },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="lightning-bolt"
-                    size={13}
-                    color={colors.primary}
-                  />
-                  <Text
-                    style={[styles.breakText, { color: colors.foreground }]}
-                  >
+                <View style={[styles.breakItem, { backgroundColor: colors.secondary }]}>
+                  <MaterialCommunityIcons name="lightning-bolt" size={13} color={colors.primary} />
+                  <Text style={[styles.breakText, { color: colors.foreground }]}>
                     {entry.energy.toFixed(2)} kq
                   </Text>
                 </View>
               )}
               {entry.food > 0 && (
-                <View
-                  style={[
-                    styles.breakItem,
-                    { backgroundColor: colors.secondary },
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="food-apple"
-                    size={13}
-                    color={colors.primary}
-                  />
-                  <Text
-                    style={[styles.breakText, { color: colors.foreground }]}
-                  >
+                <View style={[styles.breakItem, { backgroundColor: colors.secondary }]}>
+                  <MaterialCommunityIcons name="food-apple" size={13} color={colors.primary} />
+                  <Text style={[styles.breakText, { color: colors.foreground }]}>
                     {entry.food.toFixed(2)} kq
                   </Text>
                 </View>
@@ -215,27 +168,10 @@ const styles = StyleSheet.create({
   },
   emptyTitle: { fontSize: 18, fontWeight: "700" },
   emptyText: { fontSize: 14, textAlign: "center", lineHeight: 21 },
-  summary: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 4,
-    gap: 4,
-  },
-  summaryCount: {
-    color: "#FFFFFF",
-    fontSize: 22,
-    fontWeight: "800",
-  },
-  summaryTotal: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 14,
-  },
-  card: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-    gap: 8,
-  },
+  summary: { borderRadius: 16, padding: 16, marginBottom: 4, gap: 4 },
+  summaryCount: { color: "#FFFFFF", fontSize: 22, fontWeight: "800" },
+  summaryTotal: { color: "rgba(255,255,255,0.75)", fontSize: 14 },
+  card: { borderRadius: 16, borderWidth: 1, padding: 14, gap: 8 },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
