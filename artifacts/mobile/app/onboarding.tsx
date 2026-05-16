@@ -66,7 +66,7 @@ export default function OnboardingScreen() {
     backgroundColor: interpolateColor(
       scrollX.value / width,
       [0, 1, 2],
-      [SLIDES[0].bg, SLIDES[1].bg, SLIDES[2].bg]
+      [SLIDES[0].bg, SLIDES[1].bg, SLIDES[2].bg],
     ),
   }));
 

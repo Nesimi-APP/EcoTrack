@@ -19,29 +19,12 @@ import { useColors } from "@/hooks/useColors";
 
 type Point = (typeof WASTE_COLLECTION_POINTS)[0];
 
-// Start zoomed out to show the whole world
 const WORLD_REGION: Region = {
   latitude: 20,
   longitude: 15,
   latitudeDelta: 130,
   longitudeDelta: 130,
 };
-
-// Pick a marker tint color per category
-const CATEGORY_COLORS: Record<string, string> = {
-  Batareya:           "#F44336",
-  Elektronika:        "#2196F3",
-  Telefon:            "#9C27B0",
-  Kompüter:           "#FF9800",
-  "Məişət texnikası": "#4CAF50",
-};
-
-function markerColor(point: Point, filter: string): string {
-  if (filter !== "Hamısı" && CATEGORY_COLORS[filter])
-    return CATEGORY_COLORS[filter];
-  // Use color of first type
-  return CATEGORY_COLORS[point.types[0]] ?? "#2D7A4F";
-}
 
 export default function NativeMapView() {
   const colors = useColors();
@@ -67,7 +50,7 @@ export default function NativeMapView() {
 
   const closePanel = () => {
     Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true }).start(
-      () => setSelected(null)
+      () => setSelected(null),
     );
   };
 
@@ -102,8 +85,7 @@ export default function NativeMapView() {
                 {
                   backgroundColor:
                     filter === cat ? colors.primary : colors.card,
-                  borderColor:
-                    filter === cat ? colors.primary : colors.border,
+                  borderColor: filter === cat ? colors.primary : colors.border,
                 },
               ]}
               onPress={() => setFilter(cat)}
@@ -134,7 +116,6 @@ export default function NativeMapView() {
         showsMyLocationButton
       >
         {filtered.map((point) => {
-          const color = markerColor(point, filter);
           return (
             <Marker
               key={point.id}
@@ -144,7 +125,7 @@ export default function NativeMapView() {
               <View
                 style={[
                   styles.markerContainer,
-                  { backgroundColor: color },
+                  { backgroundColor: colors.primary },
                 ]}
               >
                 <MaterialCommunityIcons
@@ -198,17 +179,11 @@ export default function NativeMapView() {
                 style={[
                   styles.typeChip,
                   {
-                    backgroundColor:
-                      (CATEGORY_COLORS[t] ?? colors.primary) + "22",
+                    backgroundColor: colors.primary + "1A", // 10% şəffaflıq ilə primary rəngi
                   },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.typeChipText,
-                    { color: CATEGORY_COLORS[t] ?? colors.primary },
-                  ]}
-                >
+                <Text style={[styles.typeChipText, { color: colors.primary }]}>
                   {t}
                 </Text>
               </View>
@@ -224,26 +199,6 @@ export default function NativeMapView() {
           </Pressable>
         </Animated.View>
       )}
-
-      {/* Legend */}
-      <View
-        style={[
-          styles.legend,
-          {
-            backgroundColor: colors.card,
-            bottom: insets.bottom + 12,
-          },
-        ]}
-      >
-        {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
-          <View key={cat} style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: color }]} />
-            <Text style={[styles.legendText, { color: colors.mutedForeground }]}>
-              {cat}
-            </Text>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
@@ -333,18 +288,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   directBtnText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
-  legend: {
-    position: "absolute",
-    right: 12,
-    borderRadius: 12,
-    padding: 10,
-    gap: 5,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  legendItem: { flexDirection: "row", alignItems: "center", gap: 5 },
-  legendDot: { width: 8, height: 8, borderRadius: 4 },
-  legendText: { fontSize: 10, fontWeight: "500" },
 });
