@@ -4,12 +4,21 @@ import React from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { WIKI_ARTICLES } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
+
+const CATEGORY_MAP: Record<string, string> = {
+  "E-Tullantı":          "eWaste",
+  "Bərpa Olunan Enerji": "renewable",
+  "Plastiksiz Həyat":    "plasticFree",
+  "Karbon İzi":          "carbonFootprint",
+};
 
 export default function WikiArticleScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const article = WIKI_ARTICLES.find((a) => a.id === id);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
@@ -17,10 +26,17 @@ export default function WikiArticleScreen() {
   if (!article) {
     return (
       <View style={[styles.notFound, { backgroundColor: colors.background }]}>
-        <Text style={[styles.notFoundText, { color: colors.foreground }]}>Məqalə tapılmadı</Text>
+        <Text style={[styles.notFoundText, { color: colors.foreground }]}>
+          {t.wiki.all === "Hamısı" ? "Məqalə tapılmadı" : t.wiki.all === "All" ? "Article not found" : "Makale bulunamadı"}
+        </Text>
       </View>
     );
   }
+
+  const catKey = CATEGORY_MAP[article.category];
+  const displayCategory = catKey
+    ? t.wiki.categories[catKey as keyof typeof t.wiki.categories]
+    : article.category;
 
   return (
     <ScrollView
@@ -30,12 +46,12 @@ export default function WikiArticleScreen() {
     >
       <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <View style={[styles.catBadge, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
-          <Text style={styles.catText}>{article.category}</Text>
+          <Text style={styles.catText}>{displayCategory}</Text>
         </View>
         <Text style={styles.title}>{article.title}</Text>
         <View style={styles.meta}>
           <MaterialCommunityIcons name="clock-outline" size={14} color="rgba(255,255,255,0.7)" />
-          <Text style={styles.readTime}>{article.readTime} oxuma</Text>
+          <Text style={styles.readTime}>{article.readTime} {t.wiki.readTimeSuffix}</Text>
         </View>
       </View>
 

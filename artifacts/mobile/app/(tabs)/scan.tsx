@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { useColors } from "@/hooks/useColors";
 
 const ECOSCORE_COLORS: Record<string, string> = {
@@ -51,7 +52,6 @@ interface ProductResult {
   status: "found" | "not_found";
 }
 
-// Estimated carbon footprint (grams CO₂ per 100g or 100ml) by category keyword
 const CATEGORY_CARBON: Array<{ keywords: string[]; co2: number; labelAz: string }> = [
   { keywords: ["water", "waters", "spring-water", "mineral-water", "mineral-waters"], co2: 6, labelAz: "Su" },
   { keywords: ["soft-drink", "sodas", "cola", "carbonated"], co2: 11, labelAz: "Qazlı içki" },
@@ -96,7 +96,6 @@ function estimateCarbonFromCategories(
   return null;
 }
 
-// Derive readable eco-grade from estimated CO₂ (per 100g)
 function gradeFromCo2(co2: number): string {
   if (co2 < 20) return "a";
   if (co2 < 60) return "b";
@@ -119,12 +118,11 @@ async function lookupBarcode(barcode: string): Promise<ProductResult> {
 
   const p = data.product;
 
-  // Try to get measured carbon data first
   const measuredCarbon: number | undefined =
     typeof p.carbon_footprint_from_known_ingredients_100g === "number"
       ? p.carbon_footprint_from_known_ingredients_100g
       : typeof p.ecoscore_data?.agribalyse?.co2_total === "number"
-      ? p.ecoscore_data.agribalyse.co2_total * 100 // agribalyse is per kg → convert to per 100g
+      ? p.ecoscore_data.agribalyse.co2_total * 100
       : typeof p.nutriments?.["carbon-footprint_100g"] === "number"
       ? p.nutriments["carbon-footprint_100g"]
       : undefined;
@@ -135,7 +133,6 @@ async function lookupBarcode(barcode: string): Promise<ProductResult> {
   const carbonPer100g = measuredCarbon ?? estimate?.co2;
   const carbonEstimated = measuredCarbon == null && estimate != null;
 
-  // Derive eco-grade from estimate when API grade is missing
   const ecoscoreGrade =
     p.ecoscore_grade && p.ecoscore_grade !== "not-applicable" && p.ecoscore_grade !== "unknown"
       ? p.ecoscore_grade
@@ -150,7 +147,6 @@ async function lookupBarcode(barcode: string): Promise<ProductResult> {
       ? Math.max(0, Math.min(100, Math.round(100 - carbonPer100g / 10)))
       : undefined;
 
-  // Human-readable category
   const mainCatRaw: string =
     p.main_category_en ||
     categoryTags.find((t: string) => t.startsWith("en:"))?.replace("en:", "") ||
@@ -158,8 +154,6 @@ async function lookupBarcode(barcode: string): Promise<ProductResult> {
     "";
 
   const categoryAz = estimate?.labelAz;
-
-  // Packaging info
   const packagingRaw: string = p.packaging || p.packaging_tags?.join(", ") || "";
 
   return {
@@ -198,22 +192,23 @@ function ResultCard({
   onScanAnother: () => void;
 }) {
   const colors = useColors();
+  const { t } = useLanguage();
 
   if (result.status === "not_found") {
     return (
       <View style={[styles.resultCard, { backgroundColor: colors.card }]}>
         <Ionicons name="alert-circle-outline" size={56} color="#E57373" />
         <Text style={[styles.resultTitle, { color: colors.foreground }]}>
-          Məhsul tapılmadı
+          {t.scan.notFound}
         </Text>
         <Text style={[styles.resultSub, { color: colors.mutedForeground }]}>
-          Bu barkod üçün məlumat mövcud deyil
+          {t.scan.notFoundDesc}
         </Text>
         <Text style={[styles.barcodeText, { color: colors.mutedForeground }]}>
           {result.barcode}
         </Text>
         <Pressable style={styles.scanAnotherBtn} onPress={onScanAnother}>
-          <Text style={styles.scanAnotherText}>Yenidən skan et</Text>
+          <Text style={styles.scanAnotherText}>{t.scan.rescan}</Text>
         </Pressable>
       </View>
     );
@@ -230,11 +225,10 @@ function ResultCard({
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.resultCard, { backgroundColor: colors.card }]}>
-        {/* Header */}
         <View style={styles.productHeader}>
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={[styles.productName, { color: colors.foreground }]} numberOfLines={2}>
-              {result.name || "İsimsiz məhsul"}
+              {result.name || t.scan.unnamedProduct}
             </Text>
             {!!result.brand && (
               <Text style={[styles.productBrand, { color: colors.mutedForeground }]}>
@@ -259,11 +253,10 @@ function ResultCard({
 
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-        {/* Carbon & Eco metrics */}
         <View style={styles.metricsRow}>
           <View style={styles.metric}>
             <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
-              Eco Qiymət
+              {t.scan.ecoPrice}
             </Text>
             <View style={styles.metricValueRow}>
               <View style={[styles.gradeDot, { backgroundColor: gradeColor }]} />
@@ -272,7 +265,7 @@ function ResultCard({
               </Text>
             </View>
             {result.carbonEstimated && grade !== "unknown" && (
-              <Text style={[styles.estimatedLabel, { color: "#F0A500" }]}>təxmini</Text>
+              <Text style={[styles.estimatedLabel, { color: "#F0A500" }]}>{t.scan.estimated}</Text>
             )}
           </View>
 
@@ -280,7 +273,7 @@ function ResultCard({
 
           <View style={styles.metric}>
             <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
-              Karbon / 100q
+              {t.scan.carbonPer100g}
             </Text>
             {result.carbonPer100g != null ? (
               <>
@@ -290,7 +283,7 @@ function ResultCard({
                     : `${result.carbonPer100g.toFixed(1)} q CO₂`}
                 </Text>
                 {result.carbonEstimated && (
-                  <Text style={[styles.estimatedLabel, { color: "#F0A500" }]}>təxmini</Text>
+                  <Text style={[styles.estimatedLabel, { color: "#F0A500" }]}>{t.scan.estimated}</Text>
                 )}
               </>
             ) : (
@@ -299,12 +292,11 @@ function ResultCard({
           </View>
         </View>
 
-        {/* Score bar */}
         {result.ecoscoreScore != null && (
           <View style={styles.scoreBarWrap}>
             <View style={styles.scoreBarLabels}>
               <Text style={[styles.scoreText, { color: colors.mutedForeground }]}>
-                Ekoloji bal
+                {t.scan.ecoScore}
               </Text>
               <Text style={[styles.scoreText, { color: gradeColor, fontWeight: "700" }]}>
                 {result.ecoscoreScore}/100
@@ -324,7 +316,6 @@ function ResultCard({
           </View>
         )}
 
-        {/* Packaging */}
         {!!result.packaging && (
           <View style={styles.detailRow}>
             <Ionicons name="cube-outline" size={15} color="#7BAE8A" />
@@ -334,13 +325,11 @@ function ResultCard({
           </View>
         )}
 
-        {/* Estimated disclaimer */}
         {result.carbonEstimated && (
           <View style={[styles.infoBox, { backgroundColor: "#FFF8E7", borderColor: "#F0A500", borderWidth: 1 }]}>
             <Ionicons name="flask-outline" size={15} color="#F0A500" />
             <Text style={[styles.infoText, { color: "#8B6500" }]}>
-              Bu məhsul üçün dəqiq məlumat tapılmadı. Göstərilən dəyərlər kateqoriyaya görə
-              hesablanmış <Text style={{ fontWeight: "700" }}>təxmini</Text> rəqəmlərdir.
+              {t.scan.estimatedDisclaimer}
             </Text>
           </View>
         )}
@@ -348,13 +337,13 @@ function ResultCard({
         <View style={styles.infoBox}>
           <Ionicons name="information-circle-outline" size={15} color="#7BAE8A" />
           <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-            Məlumat Open Food Facts bazasından götürülmüşdür
+            {t.scan.attribution}
           </Text>
         </View>
 
         <Pressable style={styles.scanAnotherBtn} onPress={onScanAnother}>
           <Ionicons name="barcode-outline" size={18} color="#fff" />
-          <Text style={styles.scanAnotherText}>Yeni məhsul skan et</Text>
+          <Text style={styles.scanAnotherText}>{t.scan.newScan}</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -363,6 +352,7 @@ function ResultCard({
 
 export default function ScanScreen() {
   const colors = useColors();
+  const { t } = useLanguage();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -381,14 +371,14 @@ export default function ScanScreen() {
         const res = await lookupBarcode(data);
         setResult(res);
       } catch {
-        Alert.alert("Xəta", "Məhsul məlumatı yüklənərkən xəta baş verdi.");
+        Alert.alert(t.scan.error, t.scan.errorMsg);
         setScanned(false);
         scanLock.current = false;
       } finally {
         setLoading(false);
       }
     },
-    []
+    [t]
   );
 
   const handleManualSearch = useCallback(async () => {
@@ -399,11 +389,11 @@ export default function ScanScreen() {
       const res = await lookupBarcode(code);
       setResult(res);
     } catch {
-      Alert.alert("Xəta", "Məhsul məlumatı yüklənərkən xəta baş verdi.");
+      Alert.alert(t.scan.error, t.scan.errorMsg);
     } finally {
       setLoading(false);
     }
-  }, [manualBarcode]);
+  }, [manualBarcode, t]);
 
   const reset = useCallback(() => {
     setResult(null);
@@ -420,7 +410,7 @@ export default function ScanScreen() {
             <Ionicons name="arrow-back" size={22} color={colors.foreground} />
           </Pressable>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
-            Məhsul Məlumatı
+            {t.scan.productInfo}
           </Text>
           <View style={{ width: 38 }} />
         </View>
@@ -435,16 +425,16 @@ export default function ScanScreen() {
         <View style={styles.webContainer}>
           <Ionicons name="barcode-outline" size={64} color="#2D7A4F" />
           <Text style={[styles.webTitle, { color: colors.foreground }]}>
-            Barkod ilə Karbon İzi
+            {t.scan.webTitle}
           </Text>
           <Text style={[styles.webDesc, { color: colors.mutedForeground }]}>
-            Barkod nömrəsini daxil edərək məhsulun karbon izini öyrənin
+            {t.scan.webDesc}
           </Text>
           <View style={[styles.manualInputRow, { borderColor: colors.border, backgroundColor: colors.card }]}>
             <Ionicons name="search-outline" size={20} color="#7BAE8A" />
             <TextInput
               style={[styles.manualInput, { color: colors.foreground }]}
-              placeholder="Barkod nömrəsi (məs. 8690526085584)"
+              placeholder={t.scan.manualPlaceholderWeb}
               placeholderTextColor={colors.mutedForeground}
               value={manualBarcode}
               onChangeText={setManualBarcode}
@@ -461,7 +451,7 @@ export default function ScanScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.searchBtnText}>Axtar</Text>
+              <Text style={styles.searchBtnText}>{t.scan.search}</Text>
             )}
           </Pressable>
         </View>
@@ -485,18 +475,18 @@ export default function ScanScreen() {
         <View style={styles.permissionContainer}>
           <Ionicons name="camera-outline" size={72} color="#2D7A4F" />
           <Text style={[styles.permTitle, { color: colors.foreground }]}>
-            Kamera İcazəsi
+            {t.scan.permTitle}
           </Text>
           <Text style={[styles.permDesc, { color: colors.mutedForeground }]}>
-            Barkod skan etmək üçün kameraya giriş icazəsi tələb olunur
+            {t.scan.permDesc}
           </Text>
           <Pressable style={styles.permBtn} onPress={requestPermission}>
-            <Text style={styles.permBtnText}>İcazə ver</Text>
+            <Text style={styles.permBtnText}>{t.scan.permBtn}</Text>
           </Pressable>
 
           <View style={[styles.orRow, { marginTop: 20 }]}>
             <View style={[styles.orLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.orText, { color: colors.mutedForeground }]}>və ya</Text>
+            <Text style={[styles.orText, { color: colors.mutedForeground }]}>{t.scan.or}</Text>
             <View style={[styles.orLine, { backgroundColor: colors.border }]} />
           </View>
 
@@ -504,7 +494,7 @@ export default function ScanScreen() {
             <Ionicons name="search-outline" size={20} color="#7BAE8A" />
             <TextInput
               style={[styles.manualInput, { color: colors.foreground }]}
-              placeholder="Barkod nömrəsini daxil edin"
+              placeholder={t.scan.manualInputPerm}
               placeholderTextColor={colors.mutedForeground}
               value={manualBarcode}
               onChangeText={setManualBarcode}
@@ -521,7 +511,7 @@ export default function ScanScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.searchBtnText}>Axtar</Text>
+              <Text style={styles.searchBtnText}>{t.scan.search}</Text>
             )}
           </Pressable>
         </View>
@@ -545,10 +535,8 @@ export default function ScanScreen() {
         style={styles.topOverlay}
       >
         <SafeAreaView>
-          <Text style={styles.cameraTitle}>Məhsul Skanı</Text>
-          <Text style={styles.cameraSubtitle}>
-            Barkodu çərçivəyə yerləşdirin
-          </Text>
+          <Text style={styles.cameraTitle}>{t.scan.title}</Text>
+          <Text style={styles.cameraSubtitle}>{t.scan.subtitle}</Text>
         </SafeAreaView>
       </LinearGradient>
 
@@ -561,7 +549,7 @@ export default function ScanScreen() {
           {loading && (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator color="#fff" size="large" />
-              <Text style={styles.loadingText}>Yüklənir...</Text>
+              <Text style={styles.loadingText}>{t.scan.loading}</Text>
             </View>
           )}
         </View>
@@ -575,7 +563,7 @@ export default function ScanScreen() {
           <Ionicons name="search-outline" size={20} color="#fff" />
           <TextInput
             style={styles.manualInputDark}
-            placeholder="Barkodu əl ilə daxil edin"
+            placeholder={t.scan.manualPlaceholder}
             placeholderTextColor="rgba(255,255,255,0.5)"
             value={manualBarcode}
             onChangeText={setManualBarcode}

@@ -151,6 +151,45 @@ export type Translations = {
     entries: string;
     wiki: string;
   };
+  scan: {
+    title: string;
+    subtitle: string;
+    productInfo: string;
+    notFound: string;
+    notFoundDesc: string;
+    rescan: string;
+    newScan: string;
+    ecoPrice: string;
+    carbonPer100g: string;
+    ecoScore: string;
+    estimated: string;
+    estimatedDisclaimer: string;
+    attribution: string;
+    unnamedProduct: string;
+    loading: string;
+    search: string;
+    manualPlaceholder: string;
+    manualPlaceholderWeb: string;
+    manualInputPerm: string;
+    webTitle: string;
+    webDesc: string;
+    permTitle: string;
+    permDesc: string;
+    permBtn: string;
+    or: string;
+    error: string;
+    errorMsg: string;
+  };
+  wiki: {
+    all: string;
+    readTimeSuffix: string;
+    categories: {
+      eWaste: string;
+      renewable: string;
+      plasticFree: string;
+      carbonFootprint: string;
+    };
+  };
   badges: Record<string, { name: string; description: string }>;
 };
 
@@ -336,6 +375,45 @@ const az: Translations = {
     entries: "Bütün Girişlər",
     wiki: "Eko-Vikipediya",
   },
+  scan: {
+    title: "Məhsul Skanı",
+    subtitle: "Barkodu çərçivəyə yerləşdirin",
+    productInfo: "Məhsul Məlumatı",
+    notFound: "Məhsul Tapılmadı",
+    notFoundDesc: "Bu barkod üçün məlumat mövcud deyil",
+    rescan: "Yenidən skan et",
+    newScan: "Yeni məhsul skan et",
+    ecoPrice: "Eco Qiymət",
+    carbonPer100g: "Karbon / 100q",
+    ecoScore: "Ekoloji bal",
+    estimated: "təxmini",
+    estimatedDisclaimer: "Bu məhsul üçün dəqiq məlumat tapılmadı. Göstərilən dəyərlər kateqoriyaya görə hesablanmış təxmini rəqəmlərdir.",
+    attribution: "Məlumat Open Food Facts bazasından götürülmüşdür",
+    unnamedProduct: "İsimsiz məhsul",
+    loading: "Yüklənir...",
+    search: "Axtar",
+    manualPlaceholder: "Barkodu əl ilə daxil edin",
+    manualPlaceholderWeb: "Barkod nömrəsi (məs. 8690526085584)",
+    manualInputPerm: "Barkod nömrəsini daxil edin",
+    webTitle: "Barkod ilə Karbon İzi",
+    webDesc: "Barkod nömrəsini daxil edərək məhsulun karbon izini öyrənin",
+    permTitle: "Kamera İcazəsi",
+    permDesc: "Barkod skan etmək üçün kameraya giriş icazəsi tələb olunur",
+    permBtn: "İcazə ver",
+    or: "və ya",
+    error: "Xəta",
+    errorMsg: "Məhsul məlumatı yüklənərkən xəta baş verdi.",
+  },
+  wiki: {
+    all: "Hamısı",
+    readTimeSuffix: "oxuma",
+    categories: {
+      eWaste: "E-Tullantı",
+      renewable: "Bərpa Olunan Enerji",
+      plasticFree: "Plastiksiz Həyat",
+      carbonFootprint: "Karbon İzi",
+    },
+  },
   badges: {
     first_entry: { name: "İlk Addım", description: "İlk karbon girişinizi etdiniz" },
     co2_saver: { name: "CO₂ Qənaətçisi", description: "50 kq CO₂ izləndi" },
@@ -518,6 +596,45 @@ const en: Translations = {
     entries: "All Entries",
     wiki: "Eco-Wikipedia",
   },
+  scan: {
+    title: "Product Scan",
+    subtitle: "Place the barcode in the frame",
+    productInfo: "Product Info",
+    notFound: "Product Not Found",
+    notFoundDesc: "No data available for this barcode",
+    rescan: "Scan again",
+    newScan: "Scan new product",
+    ecoPrice: "Eco Score",
+    carbonPer100g: "Carbon / 100g",
+    ecoScore: "Eco score",
+    estimated: "estimated",
+    estimatedDisclaimer: "No exact data found for this product. Values shown are estimated based on product category.",
+    attribution: "Data sourced from Open Food Facts database",
+    unnamedProduct: "Unnamed product",
+    loading: "Loading...",
+    search: "Search",
+    manualPlaceholder: "Enter barcode manually",
+    manualPlaceholderWeb: "Barcode number (e.g. 8690526085584)",
+    manualInputPerm: "Enter barcode number",
+    webTitle: "Carbon Footprint by Barcode",
+    webDesc: "Enter a barcode number to learn the product's carbon footprint",
+    permTitle: "Camera Permission",
+    permDesc: "Camera access is required to scan barcodes",
+    permBtn: "Allow",
+    or: "or",
+    error: "Error",
+    errorMsg: "An error occurred while loading product data.",
+  },
+  wiki: {
+    all: "All",
+    readTimeSuffix: "read",
+    categories: {
+      eWaste: "E-Waste",
+      renewable: "Renewable Energy",
+      plasticFree: "Plastic-Free Life",
+      carbonFootprint: "Carbon Footprint",
+    },
+  },
   badges: {
     first_entry: { name: "First Step", description: "You logged your first carbon entry" },
     co2_saver: { name: "CO₂ Saver", description: "50 kg CO₂ tracked" },
@@ -699,6 +816,45 @@ const tr: Translations = {
     notifications: "Bildirimler",
     entries: "Tüm Girişler",
     wiki: "Eko-Vikipedi",
+  },
+  scan: {
+    title: "Ürün Tarama",
+    subtitle: "Barkodu çerçeveye yerleştirin",
+    productInfo: "Ürün Bilgisi",
+    notFound: "Ürün Bulunamadı",
+    notFoundDesc: "Bu barkod için veri mevcut değil",
+    rescan: "Tekrar tara",
+    newScan: "Yeni ürün tara",
+    ecoPrice: "Eko Puan",
+    carbonPer100g: "Karbon / 100g",
+    ecoScore: "Eko puan",
+    estimated: "tahmini",
+    estimatedDisclaimer: "Bu ürün için kesin veri bulunamadı. Gösterilen değerler ürün kategorisine göre hesaplanmış tahmini rakamlardır.",
+    attribution: "Veriler Open Food Facts veritabanından alınmıştır",
+    unnamedProduct: "İsimsiz ürün",
+    loading: "Yükleniyor...",
+    search: "Ara",
+    manualPlaceholder: "Barkodu manuel girin",
+    manualPlaceholderWeb: "Barkod numarası (örn. 8690526085584)",
+    manualInputPerm: "Barkod numarasını girin",
+    webTitle: "Barkod ile Karbon İzi",
+    webDesc: "Ürünün karbon izini öğrenmek için barkod numarası girin",
+    permTitle: "Kamera İzni",
+    permDesc: "Barkod taramak için kamera erişim izni gereklidir",
+    permBtn: "İzin Ver",
+    or: "veya",
+    error: "Hata",
+    errorMsg: "Ürün verisi yüklenirken bir hata oluştu.",
+  },
+  wiki: {
+    all: "Hepsi",
+    readTimeSuffix: "okuma",
+    categories: {
+      eWaste: "E-Atık",
+      renewable: "Yenilenebilir Enerji",
+      plasticFree: "Plastiksiz Yaşam",
+      carbonFootprint: "Karbon Ayak İzi",
+    },
   },
   badges: {
     first_entry: { name: "İlk Adım", description: "İlk karbon girişinizi yaptınız" },

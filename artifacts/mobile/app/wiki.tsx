@@ -11,27 +11,51 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useLanguage } from "@/context/LanguageContext";
 import { WIKI_ARTICLES } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
 
-const CATEGORIES = ["Hamısı", "E-Tullantı", "Bərpa Olunan Enerji", "Plastiksiz Həyat", "Karbon İzi"];
+// Internal Azerbaijani category labels (used to filter WIKI_ARTICLES)
+const CATEGORY_MAP = [
+  { key: "all" as const,             azLabel: "" },
+  { key: "eWaste" as const,          azLabel: "E-Tullantı" },
+  { key: "renewable" as const,       azLabel: "Bərpa Olunan Enerji" },
+  { key: "plasticFree" as const,     azLabel: "Plastiksiz Həyat" },
+  { key: "carbonFootprint" as const, azLabel: "Karbon İzi" },
+];
+
+type CategoryKey = typeof CATEGORY_MAP[number]["key"];
 
 const CATEGORY_ICONS: Record<string, string> = {
-  "E-Tullantı": "recycle",
+  "E-Tullantı":        "recycle",
   "Bərpa Olunan Enerji": "solar-panel",
-  "Plastiksiz Həyat": "leaf",
-  "Karbon İzi": "molecule-co2",
+  "Plastiksiz Həyat":  "leaf",
+  "Karbon İzi":        "molecule-co2",
 };
 
 export default function WikiScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const [filter, setFilter] = useState("Hamısı");
+  const { t } = useLanguage();
+  const [filterKey, setFilterKey] = useState<CategoryKey>("all");
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
-  const filtered = filter === "Hamısı"
+  const activeAzLabel = CATEGORY_MAP.find((c) => c.key === filterKey)?.azLabel ?? "";
+
+  const filtered = filterKey === "all"
     ? WIKI_ARTICLES
-    : WIKI_ARTICLES.filter((a) => a.category === filter);
+    : WIKI_ARTICLES.filter((a) => a.category === activeAzLabel);
+
+  function getCategoryLabel(key: CategoryKey): string {
+    if (key === "all") return t.wiki.all;
+    return t.wiki.categories[key];
+  }
+
+  function getArticleCategoryLabel(azLabel: string): string {
+    const entry = CATEGORY_MAP.find((c) => c.azLabel === azLabel);
+    if (!entry || entry.key === "all") return azLabel;
+    return t.wiki.categories[entry.key];
+  }
 
   return (
     <ScrollView
@@ -41,20 +65,20 @@ export default function WikiScreen() {
     >
       {/* Category Filter */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
-        {CATEGORIES.map((cat) => (
+        {CATEGORY_MAP.map((cat) => (
           <Pressable
-            key={cat}
+            key={cat.key}
             style={[
               styles.filterChip,
               {
-                backgroundColor: filter === cat ? colors.primary : colors.secondary,
-                borderColor: filter === cat ? colors.primary : colors.border,
+                backgroundColor: filterKey === cat.key ? colors.primary : colors.secondary,
+                borderColor: filterKey === cat.key ? colors.primary : colors.border,
               },
             ]}
-            onPress={() => setFilter(cat)}
+            onPress={() => setFilterKey(cat.key)}
           >
-            <Text style={[styles.filterText, { color: filter === cat ? "#FFFFFF" : colors.foreground }]}>
-              {cat}
+            <Text style={[styles.filterText, { color: filterKey === cat.key ? "#FFFFFF" : colors.foreground }]}>
+              {getCategoryLabel(cat.key)}
             </Text>
           </Pressable>
         ))}
@@ -77,7 +101,9 @@ export default function WikiScreen() {
                 size={12}
                 color={colors.primary}
               />
-              <Text style={[styles.catText, { color: colors.primary }]}>{article.category}</Text>
+              <Text style={[styles.catText, { color: colors.primary }]}>
+                {getArticleCategoryLabel(article.category)}
+              </Text>
             </View>
             <Text style={[styles.articleTitle, { color: colors.foreground }]}>{article.title}</Text>
             <Text style={[styles.articleSummary, { color: colors.mutedForeground }]}>{article.summary}</Text>
