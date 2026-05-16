@@ -56,6 +56,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 const STORAGE_KEYS = {
   profile: "@ecotrack_profile",
   badges: "@ecotrack_badges",
+  pending: "@ecotrack_pending_entries",
 };
 
 export function totalEntriesForLevel(level: number): number {
@@ -113,16 +114,64 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setEntries([]);
       return;
     }
-    api.entries.list().then((rows) => {
-      setEntries(
-        rows.map((r) => ({
-          id: r.id,
-          date: r.date,
-          transport: r.transport,
-          energy: r.energy,
-          food: r.food,
-          total: r.total,
-        }))
+    api.entries.list().then(async (rows) => {
+      const mapped = rows.map((r) => ({
+        id: r.id,
+        date: r.date,
+        transport: r.transport,
+        energy: r.energy,
+        food: r.food,
+        total: r.total,
+      }));
+      // Sync any entries that failed to save previously
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEYS.pending);
+        if (raw) {
+          const queue: CarbonEntry[] = JSON.parse(raw);
+          const serverIds = new Set(mapped.map((e) => e.id));
+          const toSync = queue.filter((e) => !serverIds.has(e.id));
+          const synced: string[] = [];
+          for (const entry of toSync) {
+            try {
+              await api.entries.create({
+                id: entry.id,
+                transport: entry.transport,
+                energy: entry.energy,
+                food: entry.food,
+                total: entry.total,
+                date: entry.date,
+              });
+              synced.push(entry.id);
+              mapped.push(entry);
+            } catch {}
+          }
+          const remaining = queue.filter((e) => !synced.includes(e.id));
+          await AsyncStorage.setItem(STORAGE_KEYS.pending, JSON.stringify(remaining));
+        }
+      } catch {}
+
+      setEntries(mapped);
+
+      // Recalculate level from the authoritative server entry count
+      const correctLevel = getLevel(mapped.length);
+      setUserProfile((prev) => {
+        const updated = { ...prev, level: correctLevel };
+        AsyncStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(updated)).catch(() => {});
+        return updated;
+      });
+
+      // Recalculate badges from server entries
+      const totalCO2 = mapped.reduce((s, e) => s + e.total, 0);
+      setBadges((prev) =>
+        prev.map((b) => {
+          if (b.earned) return b;
+          if (b.id === "first_entry" && mapped.length >= 1) return { ...b, earned: true };
+          if (b.id === "co2_saver" && totalCO2 >= 50) return { ...b, earned: true };
+          if (b.id === "tree_planter" && totalCO2 / 21.77 >= 5) return { ...b, earned: true };
+          if (b.id === "carbon_champion" && totalCO2 >= 100) return { ...b, earned: true };
+          if (b.id === "eco_master" && totalCO2 >= 200) return { ...b, earned: true };
+          return b;
+        })
       );
     }).catch(() => {
       // Network error — keep local state as-is
@@ -139,7 +188,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const updated = [newEntry, ...entries];
       setEntries(updated);
 
-      // Persist to API
+      // Persist to API; queue locally if it fails so we can retry on next login
       if (token) {
         try {
           await api.entries.create({
@@ -151,7 +200,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             date: newEntry.date,
           });
         } catch {
-          // silent — local state already updated
+          try {
+            const raw = await AsyncStorage.getItem(STORAGE_KEYS.pending);
+            const queue: CarbonEntry[] = raw ? JSON.parse(raw) : [];
+            queue.push(newEntry);
+            await AsyncStorage.setItem(STORAGE_KEYS.pending, JSON.stringify(queue));
+          } catch {}
         }
       }
 

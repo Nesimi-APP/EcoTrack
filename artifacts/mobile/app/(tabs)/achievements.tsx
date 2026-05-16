@@ -1,5 +1,6 @@
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -158,13 +159,21 @@ export default function AchievementsScreen() {
       : 100;
   const toNextLevel = neededThisLevel - progressInLevel;
 
-  useEffect(() => {
+  const fetchLeaderboard = useCallback(() => {
     setLbLoading(true);
     api.leaderboard
       .get()
       .then(setLeaderboard)
       .catch(() => {})
       .finally(() => setLbLoading(false));
+  }, []);
+
+  // Refresh every time the tab is focused so other users' changes appear immediately
+  useFocusEffect(fetchLeaderboard);
+
+  // Also re-fetch when the current user's entry count changes
+  useEffect(() => {
+    fetchLeaderboard();
   }, [entryCount]);
 
   return (
