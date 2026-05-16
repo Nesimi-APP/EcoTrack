@@ -40,6 +40,7 @@ const VEHICLE_KEYS: { key: VehicleKey; icon: string }[] = [
   { key: "bus", icon: "bus" },
   { key: "metro", icon: "subway" },
   { key: "motorcycle", icon: "motorbike" },
+  { key: "walk", icon: "walk" },
 ];
 
 const FOOD_KEYS: { key: FoodKey; icon: string }[] = [

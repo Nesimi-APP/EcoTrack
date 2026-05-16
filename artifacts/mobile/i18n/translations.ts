@@ -232,7 +232,7 @@ const az: Translations = {
     transport: {
       distance: "Məsafə (km)",
       vehicleType: "Nəqliyyat növü",
-      vehicles: { car_petrol: "Benzin", car_electric: "Elektrik", bus: "Avtobus", metro: "Metro", motorcycle: "Moto" },
+      vehicles: { car_petrol: "Benzin", car_electric: "Elektrik", bus: "Avtobus", metro: "Metro", motorcycle: "Moto", walk: "Piyada" },
     },
     energy: {
       electricity: "Elektrik (kVt·saat)",
@@ -414,7 +414,7 @@ const en: Translations = {
     transport: {
       distance: "Distance (km)",
       vehicleType: "Vehicle type",
-      vehicles: { car_petrol: "Petrol", car_electric: "Electric", bus: "Bus", metro: "Metro", motorcycle: "Moto" },
+      vehicles: { car_petrol: "Petrol", car_electric: "Electric", bus: "Bus", metro: "Metro", motorcycle: "Moto", walk: "Walking" },
     },
     energy: {
       electricity: "Electricity (kWh)",
@@ -596,7 +596,7 @@ const tr: Translations = {
     transport: {
       distance: "Mesafe (km)",
       vehicleType: "Araç türü",
-      vehicles: { car_petrol: "Benzin", car_electric: "Elektrikli", bus: "Otobüs", metro: "Metro", motorcycle: "Motorsiklet" },
+      vehicles: { car_petrol: "Benzin", car_electric: "Elektrikli", bus: "Otobüs", metro: "Metro", motorcycle: "Motorsiklet", walk: "Yürüyüş" },
     },
     energy: {
       electricity: "Elektrik (kWh)",
