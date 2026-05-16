@@ -44,7 +44,6 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await register(email.trim(), name.trim(), password);
-      router.replace("/auth/login");
     } catch (err: unknown) {
       Alert.alert(
         t.auth.register.errorTitle,
