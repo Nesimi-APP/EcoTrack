@@ -43,8 +43,66 @@ interface ProductResult {
   ecoscoreGrade?: string;
   ecoscoreScore?: number;
   carbonPer100g?: number;
+  carbonEstimated: boolean;
   category?: string;
+  categoryAz?: string;
+  packaging?: string;
+  quantity?: string;
   status: "found" | "not_found";
+}
+
+// Estimated carbon footprint (grams CO₂ per 100g or 100ml) by category keyword
+const CATEGORY_CARBON: Array<{ keywords: string[]; co2: number; labelAz: string }> = [
+  { keywords: ["water", "waters", "spring-water", "mineral-water", "mineral-waters"], co2: 6, labelAz: "Su" },
+  { keywords: ["soft-drink", "sodas", "cola", "carbonated"], co2: 11, labelAz: "Qazlı içki" },
+  { keywords: ["juice", "fruit-juice", "nectars", "fruit-drinks"], co2: 9, labelAz: "Meyvə suyu" },
+  { keywords: ["energy-drink", "energy-drinks"], co2: 14, labelAz: "Enerji içkisi" },
+  { keywords: ["milk", "milks", "dairy-drinks"], co2: 32, labelAz: "Süd" },
+  { keywords: ["yogurt", "yogurts", "fermented-milk"], co2: 28, labelAz: "Qatıq" },
+  { keywords: ["cheese", "cheeses"], co2: 140, labelAz: "Pendir" },
+  { keywords: ["butter", "margarines"], co2: 180, labelAz: "Yağ" },
+  { keywords: ["beef", "veal"], co2: 1200, labelAz: "Mal əti" },
+  { keywords: ["lamb", "mutton"], co2: 900, labelAz: "Quzu əti" },
+  { keywords: ["pork"], co2: 480, labelAz: "Donuz əti" },
+  { keywords: ["chicken", "poultry"], co2: 280, labelAz: "Toyuq" },
+  { keywords: ["fish", "seafood", "fishes"], co2: 350, labelAz: "Balıq" },
+  { keywords: ["eggs", "egg"], co2: 170, labelAz: "Yumurta" },
+  { keywords: ["bread", "breads", "loaves"], co2: 75, labelAz: "Çörək" },
+  { keywords: ["pasta", "noodles"], co2: 55, labelAz: "Makaron" },
+  { keywords: ["rice"], co2: 80, labelAz: "Düyü" },
+  { keywords: ["chocolate", "chocolates"], co2: 380, labelAz: "Şokolad" },
+  { keywords: ["biscuit", "cookies", "crackers", "snacks", "chips"], co2: 210, labelAz: "Qəlyanaltı" },
+  { keywords: ["ice-cream", "frozen-desserts"], co2: 135, labelAz: "Dondurma" },
+  { keywords: ["coffee"], co2: 280, labelAz: "Qəhvə" },
+  { keywords: ["tea", "teas"], co2: 30, labelAz: "Çay" },
+  { keywords: ["fruit", "fruits", "apple", "orange", "banana"], co2: 18, labelAz: "Meyvə" },
+  { keywords: ["vegetable", "vegetables", "tomato", "potato"], co2: 22, labelAz: "Tərəvəz" },
+  { keywords: ["oil", "olive-oil", "sunflower-oil"], co2: 190, labelAz: "Bitki yağı" },
+  { keywords: ["sauce", "ketchup", "mayonnaise", "condiment"], co2: 85, labelAz: "Sous" },
+  { keywords: ["cereal", "cereals", "corn-flakes", "muesli"], co2: 95, labelAz: "Taxıl" },
+  { keywords: ["sugar", "sweetener"], co2: 45, labelAz: "Şəkər" },
+  { keywords: ["salt", "spice", "spices"], co2: 15, labelAz: "Ədviyyat" },
+];
+
+function estimateCarbonFromCategories(
+  tags: string[] = []
+): { co2: number; labelAz: string } | null {
+  const joined = tags.join(" ").toLowerCase();
+  for (const entry of CATEGORY_CARBON) {
+    if (entry.keywords.some((k) => joined.includes(k))) {
+      return { co2: entry.co2, labelAz: entry.labelAz };
+    }
+  }
+  return null;
+}
+
+// Derive readable eco-grade from estimated CO₂ (per 100g)
+function gradeFromCo2(co2: number): string {
+  if (co2 < 20) return "a";
+  if (co2 < 60) return "b";
+  if (co2 < 150) return "c";
+  if (co2 < 400) return "d";
+  return "e";
 }
 
 async function lookupBarcode(barcode: string): Promise<ProductResult> {
@@ -56,24 +114,67 @@ async function lookupBarcode(barcode: string): Promise<ProductResult> {
   const data = await res.json();
 
   if (data.status !== 1 || !data.product) {
-    return { barcode, name: "", brand: "", status: "not_found" };
+    return { barcode, name: "", brand: "", carbonEstimated: false, status: "not_found" };
   }
 
   const p = data.product;
-  const carbon =
-    p.carbon_footprint_from_known_ingredients_100g ??
-    p.ecoscore_data?.agribalyse?.co2_total ??
-    undefined;
+
+  // Try to get measured carbon data first
+  const measuredCarbon: number | undefined =
+    typeof p.carbon_footprint_from_known_ingredients_100g === "number"
+      ? p.carbon_footprint_from_known_ingredients_100g
+      : typeof p.ecoscore_data?.agribalyse?.co2_total === "number"
+      ? p.ecoscore_data.agribalyse.co2_total * 100 // agribalyse is per kg → convert to per 100g
+      : typeof p.nutriments?.["carbon-footprint_100g"] === "number"
+      ? p.nutriments["carbon-footprint_100g"]
+      : undefined;
+
+  const categoryTags: string[] = p.categories_tags ?? [];
+  const estimate = measuredCarbon == null ? estimateCarbonFromCategories(categoryTags) : null;
+
+  const carbonPer100g = measuredCarbon ?? estimate?.co2;
+  const carbonEstimated = measuredCarbon == null && estimate != null;
+
+  // Derive eco-grade from estimate when API grade is missing
+  const ecoscoreGrade =
+    p.ecoscore_grade && p.ecoscore_grade !== "not-applicable" && p.ecoscore_grade !== "unknown"
+      ? p.ecoscore_grade
+      : carbonPer100g != null
+      ? gradeFromCo2(carbonPer100g)
+      : undefined;
+
+  const ecoscoreScore =
+    typeof p.ecoscore_score === "number"
+      ? p.ecoscore_score
+      : carbonPer100g != null && ecoscoreGrade
+      ? Math.max(0, Math.min(100, Math.round(100 - carbonPer100g / 10)))
+      : undefined;
+
+  // Human-readable category
+  const mainCatRaw: string =
+    p.main_category_en ||
+    categoryTags.find((t: string) => t.startsWith("en:"))?.replace("en:", "") ||
+    categoryTags[0]?.replace(/^[a-z]+:/, "") ||
+    "";
+
+  const categoryAz = estimate?.labelAz;
+
+  // Packaging info
+  const packagingRaw: string = p.packaging || p.packaging_tags?.join(", ") || "";
 
   return {
     barcode,
-    name: p.product_name || p.product_name_en || "",
+    name: p.product_name || p.product_name_en || p.abbreviated_product_name || "",
     brand: p.brands || "",
     imageUrl: p.image_front_small_url || p.image_url,
-    ecoscoreGrade: p.ecoscore_grade,
-    ecoscoreScore: typeof p.ecoscore_score === "number" ? p.ecoscore_score : undefined,
-    carbonPer100g: typeof carbon === "number" ? carbon : undefined,
-    category: p.main_category_en || p.categories_tags?.[0]?.replace("en:", "") || "",
+    ecoscoreGrade,
+    ecoscoreScore,
+    carbonPer100g,
+    carbonEstimated,
+    category: mainCatRaw.replace(/-/g, " "),
+    categoryAz,
+    packaging: packagingRaw,
+    quantity: p.quantity || "",
     status: "found",
   };
 }
@@ -120,6 +221,7 @@ function ResultCard({
 
   const grade = (result.ecoscoreGrade || "unknown").toLowerCase();
   const gradeColor = ECOSCORE_COLORS[grade] ?? ECOSCORE_COLORS.unknown;
+  const displayCategory = result.categoryAz || result.category || "";
 
   return (
     <ScrollView
@@ -128,12 +230,10 @@ function ResultCard({
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.resultCard, { backgroundColor: colors.card }]}>
+        {/* Header */}
         <View style={styles.productHeader}>
           <View style={{ flex: 1, gap: 4 }}>
-            <Text
-              style={[styles.productName, { color: colors.foreground }]}
-              numberOfLines={2}
-            >
+            <Text style={[styles.productName, { color: colors.foreground }]} numberOfLines={2}>
               {result.name || "İsimsiz məhsul"}
             </Text>
             {!!result.brand && (
@@ -141,17 +241,25 @@ function ResultCard({
                 {result.brand}
               </Text>
             )}
-            {!!result.category && (
-              <Text style={[styles.productCategory, { color: colors.mutedForeground }]}>
-                {result.category}
-              </Text>
-            )}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 2 }}>
+              {!!displayCategory && (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>{displayCategory}</Text>
+                </View>
+              )}
+              {!!result.quantity && (
+                <View style={styles.tag}>
+                  <Text style={styles.tagText}>{result.quantity}</Text>
+                </View>
+              )}
+            </View>
           </View>
           <EcoScoreBadge grade={result.ecoscoreGrade} />
         </View>
 
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
+        {/* Carbon & Eco metrics */}
         <View style={styles.metricsRow}>
           <View style={styles.metric}>
             <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
@@ -160,29 +268,48 @@ function ResultCard({
             <View style={styles.metricValueRow}>
               <View style={[styles.gradeDot, { backgroundColor: gradeColor }]} />
               <Text style={[styles.metricValue, { color: colors.foreground }]}>
-                {grade !== "unknown"
-                  ? `${ECOSCORE_LABELS[grade]} Sinif`
-                  : "Məlumat yoxdur"}
+                {grade !== "unknown" ? `${ECOSCORE_LABELS[grade]} Sinif` : "—"}
               </Text>
             </View>
+            {result.carbonEstimated && grade !== "unknown" && (
+              <Text style={[styles.estimatedLabel, { color: "#F0A500" }]}>təxmini</Text>
+            )}
           </View>
 
           <View style={[styles.metricDivider, { backgroundColor: colors.border }]} />
 
           <View style={styles.metric}>
             <Text style={[styles.metricLabel, { color: colors.mutedForeground }]}>
-              Karbon (100q)
+              Karbon / 100q
             </Text>
-            <Text style={[styles.metricValue, { color: colors.foreground }]}>
-              {result.carbonPer100g != null
-                ? `${result.carbonPer100g.toFixed(1)} q CO₂`
-                : "Məlumat yoxdur"}
-            </Text>
+            {result.carbonPer100g != null ? (
+              <>
+                <Text style={[styles.metricValue, { color: colors.foreground }]}>
+                  {result.carbonPer100g >= 100
+                    ? `${(result.carbonPer100g / 1000).toFixed(2)} kq CO₂`
+                    : `${result.carbonPer100g.toFixed(1)} q CO₂`}
+                </Text>
+                {result.carbonEstimated && (
+                  <Text style={[styles.estimatedLabel, { color: "#F0A500" }]}>təxmini</Text>
+                )}
+              </>
+            ) : (
+              <Text style={[styles.metricValue, { color: colors.mutedForeground }]}>—</Text>
+            )}
           </View>
         </View>
 
+        {/* Score bar */}
         {result.ecoscoreScore != null && (
           <View style={styles.scoreBarWrap}>
+            <View style={styles.scoreBarLabels}>
+              <Text style={[styles.scoreText, { color: colors.mutedForeground }]}>
+                Ekoloji bal
+              </Text>
+              <Text style={[styles.scoreText, { color: gradeColor, fontWeight: "700" }]}>
+                {result.ecoscoreScore}/100
+              </Text>
+            </View>
             <View style={[styles.scoreBarBg, { backgroundColor: colors.border }]}>
               <View
                 style={[
@@ -194,16 +321,34 @@ function ResultCard({
                 ]}
               />
             </View>
-            <Text style={[styles.scoreText, { color: colors.mutedForeground }]}>
-              Eco Bal: {result.ecoscoreScore}/100
+          </View>
+        )}
+
+        {/* Packaging */}
+        {!!result.packaging && (
+          <View style={styles.detailRow}>
+            <Ionicons name="cube-outline" size={15} color="#7BAE8A" />
+            <Text style={[styles.detailText, { color: colors.mutedForeground }]}>
+              {result.packaging}
+            </Text>
+          </View>
+        )}
+
+        {/* Estimated disclaimer */}
+        {result.carbonEstimated && (
+          <View style={[styles.infoBox, { backgroundColor: "#FFF8E7", borderColor: "#F0A500", borderWidth: 1 }]}>
+            <Ionicons name="flask-outline" size={15} color="#F0A500" />
+            <Text style={[styles.infoText, { color: "#8B6500" }]}>
+              Bu məhsul üçün dəqiq məlumat tapılmadı. Göstərilən dəyərlər kateqoriyaya görə
+              hesablanmış <Text style={{ fontWeight: "700" }}>təxmini</Text> rəqəmlərdir.
             </Text>
           </View>
         )}
 
         <View style={styles.infoBox}>
-          <Ionicons name="information-circle-outline" size={16} color="#7BAE8A" />
+          <Ionicons name="information-circle-outline" size={15} color="#7BAE8A" />
           <Text style={[styles.infoText, { color: colors.mutedForeground }]}>
-            Məlumat Open Food Facts verilənlər bazasından götürülmüşdür
+            Məlumat Open Food Facts bazasından götürülmüşdür
           </Text>
         </View>
 
@@ -645,4 +790,15 @@ const styles = StyleSheet.create({
   resultTitle: { fontSize: 20, fontWeight: "800" },
   resultSub: { fontSize: 14, textAlign: "center" },
   barcodeText: { fontSize: 12, fontFamily: "monospace" },
+  tag: {
+    backgroundColor: "#EAF4EE",
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: { fontSize: 12, color: "#4A7A5A", fontWeight: "500" },
+  estimatedLabel: { fontSize: 11, fontWeight: "600", marginTop: 2 },
+  detailRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  detailText: { fontSize: 13, flex: 1 },
+  scoreBarLabels: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 });
