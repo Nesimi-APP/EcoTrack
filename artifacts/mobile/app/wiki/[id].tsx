@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLanguage } from "@/context/LanguageContext";
 import { WIKI_ARTICLES } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
+import { Language } from "@/i18n/translations";
 
 const CATEGORY_MAP: Record<string, string> = {
   "E-Tullantı":          "eWaste",
@@ -18,21 +19,27 @@ const CATEGORY_MAP: Record<string, string> = {
 export default function WikiArticleScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const article = WIKI_ARTICLES.find((a) => a.id === id);
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
   if (!article) {
+    const notFoundMsg: Record<Language, string> = {
+      az: "Məqalə tapılmadı",
+      en: "Article not found",
+      tr: "Makale bulunamadı",
+    };
     return (
       <View style={[styles.notFound, { backgroundColor: colors.background }]}>
         <Text style={[styles.notFoundText, { color: colors.foreground }]}>
-          {t.wiki.all === "Hamısı" ? "Məqalə tapılmadı" : t.wiki.all === "All" ? "Article not found" : "Makale bulunamadı"}
+          {notFoundMsg[language]}
         </Text>
       </View>
     );
   }
 
+  const locale = article[language] ?? article.az;
   const catKey = CATEGORY_MAP[article.category];
   const displayCategory = catKey
     ? t.wiki.categories[catKey as keyof typeof t.wiki.categories]
@@ -48,15 +55,15 @@ export default function WikiArticleScreen() {
         <View style={[styles.catBadge, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
           <Text style={styles.catText}>{displayCategory}</Text>
         </View>
-        <Text style={styles.title}>{article.title}</Text>
+        <Text style={styles.title}>{locale.title}</Text>
         <View style={styles.meta}>
           <MaterialCommunityIcons name="clock-outline" size={14} color="rgba(255,255,255,0.7)" />
-          <Text style={styles.readTime}>{article.readTime} {t.wiki.readTimeSuffix}</Text>
+          <Text style={styles.readTime}>{locale.readTime} {t.wiki.readTimeSuffix}</Text>
         </View>
       </View>
 
       <View style={styles.body}>
-        {article.content.split("\n\n").map((para, i) => (
+        {locale.content.split("\n\n").map((para, i) => (
           <Text key={i} style={[styles.paragraph, { color: colors.foreground }]}>
             {para}
           </Text>

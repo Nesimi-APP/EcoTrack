@@ -12,8 +12,9 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useLanguage } from "@/context/LanguageContext";
-import { WIKI_ARTICLES } from "@/data/ecoData";
+import { WIKI_ARTICLES, WikiArticle } from "@/data/ecoData";
 import { useColors } from "@/hooks/useColors";
+import { Language } from "@/i18n/translations";
 
 // Internal Azerbaijani category labels (used to filter WIKI_ARTICLES)
 const CATEGORY_MAP = [
@@ -33,10 +34,14 @@ const CATEGORY_ICONS: Record<string, string> = {
   "Karbon İzi":        "molecule-co2",
 };
 
+function getLocale(article: WikiArticle, lang: Language) {
+  return article[lang] ?? article.az;
+}
+
 export default function WikiScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [filterKey, setFilterKey] = useState<CategoryKey>("all");
   const bottomPad = Platform.OS === "web" ? 34 : insets.bottom;
 
@@ -86,35 +91,38 @@ export default function WikiScreen() {
 
       {/* Articles */}
       <View style={styles.articles}>
-        {filtered.map((article) => (
-          <Pressable
-            key={article.id}
-            style={({ pressed }) => [
-              styles.articleCard,
-              { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.9 : 1 },
-            ]}
-            onPress={() => router.push({ pathname: "/wiki/[id]", params: { id: article.id } })}
-          >
-            <View style={[styles.catBadge, { backgroundColor: colors.secondary }]}>
-              <MaterialCommunityIcons
-                name={(CATEGORY_ICONS[article.category] || "book-open") as any}
-                size={12}
-                color={colors.primary}
-              />
-              <Text style={[styles.catText, { color: colors.primary }]}>
-                {getArticleCategoryLabel(article.category)}
-              </Text>
-            </View>
-            <Text style={[styles.articleTitle, { color: colors.foreground }]}>{article.title}</Text>
-            <Text style={[styles.articleSummary, { color: colors.mutedForeground }]}>{article.summary}</Text>
-            <View style={styles.articleFooter}>
-              <Feather name="clock" size={12} color={colors.mutedForeground} />
-              <Text style={[styles.readTime, { color: colors.mutedForeground }]}>{article.readTime}</Text>
-              <View style={{ flex: 1 }} />
-              <Feather name="chevron-right" size={16} color={colors.primary} />
-            </View>
-          </Pressable>
-        ))}
+        {filtered.map((article) => {
+          const locale = getLocale(article, language);
+          return (
+            <Pressable
+              key={article.id}
+              style={({ pressed }) => [
+                styles.articleCard,
+                { backgroundColor: colors.card, borderColor: colors.border, opacity: pressed ? 0.9 : 1 },
+              ]}
+              onPress={() => router.push({ pathname: "/wiki/[id]", params: { id: article.id } })}
+            >
+              <View style={[styles.catBadge, { backgroundColor: colors.secondary }]}>
+                <MaterialCommunityIcons
+                  name={(CATEGORY_ICONS[article.category] || "book-open") as any}
+                  size={12}
+                  color={colors.primary}
+                />
+                <Text style={[styles.catText, { color: colors.primary }]}>
+                  {getArticleCategoryLabel(article.category)}
+                </Text>
+              </View>
+              <Text style={[styles.articleTitle, { color: colors.foreground }]}>{locale.title}</Text>
+              <Text style={[styles.articleSummary, { color: colors.mutedForeground }]}>{locale.summary}</Text>
+              <View style={styles.articleFooter}>
+                <Feather name="clock" size={12} color={colors.mutedForeground} />
+                <Text style={[styles.readTime, { color: colors.mutedForeground }]}>{locale.readTime}</Text>
+                <View style={{ flex: 1 }} />
+                <Feather name="chevron-right" size={16} color={colors.primary} />
+              </View>
+            </Pressable>
+          );
+        })}
       </View>
     </ScrollView>
   );

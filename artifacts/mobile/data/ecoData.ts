@@ -253,45 +253,130 @@ export const ALL_BADGES = [
   { id: "waste_hunter",     name: "Tullantı Ovçusu",     description: "Xəritəni 3 dəfə aç",               icon: "map-pin" as const,     color: "#607D8B", earned: false },
 ];
 
-export const WIKI_ARTICLES = [
+export type WikiLocale = {
+  title: string;
+  readTime: string;
+  summary: string;
+  content: string;
+};
+
+export type WikiArticle = {
+  id: string;
+  category: string;
+  az: WikiLocale;
+  en: WikiLocale;
+  tr: WikiLocale;
+};
+
+export const WIKI_ARTICLES: WikiArticle[] = [
   {
     id: "1",
     category: "E-Tullantı",
-    title: "E-Tullantı nədir?",
-    readTime: "3 dəq",
-    summary: "Elektron tullantıların təbiətə təsiri haqqında",
-    content: `E-tullantı (elektron tullantı) artıq istifadə edilməyən elektrik və elektron avadanlıqları deməkdir. Kompüterlər, televizorlar, telefonlar, soyuducular və digər məişət texnikası bu kateqoriyaya aiddir.\n\nDünya üzrə hər il 50 milyon ton-dan çox e-tullantı yaranır. Bu tullantıların yalnız 20%-i düzgün şəkildə emal edilir.\n\nE-tullantıların içərisindəki ağır metallar (civə, qurğuşun, kadmium) torpağa və yeraltı sulara qarışaraq ciddi zərər verə bilər. 1 noutbukun düzgün emalı ilə 100 qr qiymətli metal bərpa edilə bilər.`,
+    az: {
+      title: "E-Tullantı nədir?",
+      readTime: "3 dəq",
+      summary: "Elektron tullantıların təbiətə təsiri haqqında",
+      content: `E-tullantı (elektron tullantı) artıq istifadə edilməyən elektrik və elektron avadanlıqları deməkdir. Kompüterlər, televizorlar, telefonlar, soyuducular və digər məişət texnikası bu kateqoriyaya aiddir.\n\nDünya üzrə hər il 50 milyon ton-dan çox e-tullantı yaranır. Bu tullantıların yalnız 20%-i düzgün şəkildə emal edilir.\n\nE-tullantıların içərisindəki ağır metallar (civə, qurğuşun, kadmium) torpağa və yeraltı sulara qarışaraq ciddi zərər verə bilər. 1 noutbukun düzgün emalı ilə 100 qr qiymətli metal bərpa edilə bilər.`,
+    },
+    en: {
+      title: "What is E-Waste?",
+      readTime: "3 min",
+      summary: "About the impact of electronic waste on nature",
+      content: `E-waste (electronic waste) refers to discarded electrical or electronic devices. Computers, televisions, phones, refrigerators, and other household appliances fall into this category.\n\nOver 50 million tonnes of e-waste are generated worldwide every year. Only 20% of this waste is properly recycled.\n\nHeavy metals inside e-waste — such as mercury, lead, and cadmium — can contaminate soil and groundwater. Properly recycling just one laptop can recover 100 grams of valuable metals.`,
+    },
+    tr: {
+      title: "E-Atık Nedir?",
+      readTime: "3 dk",
+      summary: "Elektronik atıkların doğaya etkisi hakkında",
+      content: `E-atık (elektronik atık), artık kullanılmayan elektrikli ve elektronik cihazlar anlamına gelir. Bilgisayarlar, televizyonlar, telefonlar, buzdolapları ve diğer ev aletleri bu kategoriye girer.\n\nDünya genelinde her yıl 50 milyon tonun üzerinde e-atık oluşmaktadır. Bu atıkların yalnızca %20'si düzgün şekilde geri dönüştürülmektedir.\n\nE-atıkların içindeki ağır metaller (cıva, kurşun, kadmiyum) toprağa ve yeraltı sulara karışarak ciddi zarar verebilir. Tek bir dizüstü bilgisayarın düzgün geri dönüşümüyle 100 gram değerli metal elde edilebilir.`,
+    },
   },
   {
     id: "2",
     category: "Bərpa Olunan Enerji",
-    title: "Günəş Enerjisinin Üstünlükləri",
-    readTime: "4 dəq",
-    summary: "Günəş panellərindən evdə necə istifadə etmək olar",
-    content: `Günəş enerjisi ən sürətlə böyüyən bərpa olunan enerji mənbəyidir. Azərbaycanda illik günəşli gün sayı 250-300-dür ki, bu da günəş panellərinin yüksək səmərəliliyini təmin edir.\n\nEv üçün 5 kVt günəş sistemi aylıq enerji xərcini 70-80% azalda bilər. İlkin investisiya 5-7 il ərzindəamortizasiya olunur.\n\nGünəş panelləri CO₂ emissiyasını praktiki olaraq sıfıra endirə bilər.`,
+    az: {
+      title: "Günəş Enerjisinin Üstünlükləri",
+      readTime: "4 dəq",
+      summary: "Günəş panellərindən evdə necə istifadə etmək olar",
+      content: `Günəş enerjisi ən sürətlə böyüyən bərpa olunan enerji mənbəyidir. Azərbaycanda illik günəşli gün sayı 250-300-dür ki, bu da günəş panellərinin yüksək səmərəliliyini təmin edir.\n\nEv üçün 5 kVt günəş sistemi aylıq enerji xərcini 70-80% azalda bilər. İlkin investisiya 5-7 il ərzində amortizasiya olunur.\n\nGünəş panelləri CO₂ emissiyasını praktiki olaraq sıfıra endirə bilər.`,
+    },
+    en: {
+      title: "Benefits of Solar Energy",
+      readTime: "4 min",
+      summary: "How to use solar panels at home",
+      content: `Solar energy is the fastest-growing renewable energy source. Many regions enjoy 250–300 sunny days per year, making solar panels highly efficient.\n\nA 5 kW home solar system can reduce monthly energy bills by 70–80%. The initial investment pays itself off within 5–7 years.\n\nSolar panels can reduce CO₂ emissions to virtually zero, making them one of the most effective tools against climate change.`,
+    },
+    tr: {
+      title: "Güneş Enerjisinin Avantajları",
+      readTime: "4 dk",
+      summary: "Evde güneş paneli nasıl kullanılır",
+      content: `Güneş enerjisi, en hızlı büyüyen yenilenebilir enerji kaynağıdır. Pek çok bölgede yılda 250–300 güneşli gün yaşanmakta olup bu durum güneş panellerinin verimliliğini artırmaktadır.\n\n5 kW'lık bir ev güneş sistemi aylık enerji faturasını %70–80 oranında azaltabilir. İlk yatırım 5–7 yıl içinde kendini amorti eder.\n\nGüneş panelleri CO₂ emisyonlarını neredeyse sıfıra indirebilir ve iklim değişikliğiyle mücadelede en etkili araçlardan biri haline gelebilir.`,
+    },
   },
   {
     id: "3",
     category: "Plastiksiz Həyat",
-    title: "Plastikdən İmtina — 10 Addım",
-    readTime: "5 dəq",
-    summary: "Gündəlik həyatda plastik istifadəsini azaltmağın yolları",
-    content: `Plastik çirklənməsi dünyamızın ən ciddi ekoloji problemlərindən biridir. Hər il 8 milyon ton plastik okeanlara tökülür.\n\n10 addımda plastikdən azad həyata:\n1. Torbani özün apar\n2. Suyunu şüşə qabda saxla\n3. Straw (saman) istifadəsindən imtina et\n4. Doldurulabilir qablardan istifadə et\n5. Bərk şampun seç\n6. Bar sabun istifadə et\n7. Tərəvəzlərini polietilensiz al\n8. Artıq qablaşdırılmış məhsullardan qaç\n9. Qaytarıla bilən ambalajları seç\n10. İkinci əl alış-veriş et`,
+    az: {
+      title: "Plastikdən İmtina — 10 Addım",
+      readTime: "5 dəq",
+      summary: "Gündəlik həyatda plastik istifadəsini azaltmağın yolları",
+      content: `Plastik çirklənməsi dünyamızın ən ciddi ekoloji problemlərindən biridir. Hər il 8 milyon ton plastik okeanlara tökülür.\n\n10 addımda plastikdən azad həyata:\n1. Torbani özün apar\n2. Suyunu şüşə qabda saxla\n3. Saman (straw) istifadəsindən imtina et\n4. Doldurula bilən qablardan istifadə et\n5. Bərk şampun seç\n6. Bar sabun istifadə et\n7. Tərəvəzlərini polietilensiz al\n8. Artıq qablaşdırılmış məhsullardan qaç\n9. Qaytarıla bilən ambalajları seç\n10. İkinci əl alış-veriş et`,
+    },
+    en: {
+      title: "Going Plastic-Free — 10 Steps",
+      readTime: "5 min",
+      summary: "Ways to reduce plastic use in daily life",
+      content: `Plastic pollution is one of the most serious environmental problems facing our world. Every year, 8 million tonnes of plastic end up in the oceans.\n\n10 steps to a plastic-free life:\n1. Bring your own reusable bag\n2. Carry water in a glass or metal bottle\n3. Skip the plastic straw\n4. Use refillable containers\n5. Choose solid shampoo bars\n6. Use bar soap\n7. Buy vegetables without plastic wrap\n8. Avoid over-packaged products\n9. Choose returnable packaging\n10. Shop second-hand`,
+    },
+    tr: {
+      title: "Plastikten Vazgeçmek — 10 Adım",
+      readTime: "5 dk",
+      summary: "Günlük hayatta plastik kullanımını azaltmanın yolları",
+      content: `Plastik kirliliği, dünyamızın karşı karşıya olduğu en ciddi çevre sorunlarından biridir. Her yıl 8 milyon ton plastik okyanuslara karışmaktadır.\n\nPlastiksiz bir yaşama giden 10 adım:\n1. Kendi bez çantanı getir\n2. Suyu cam veya metal şişede taşı\n3. Plastik pipeti reddet\n4. Doldurulabilir kaplar kullan\n5. Katı şampuan tercih et\n6. Sabun kullan\n7. Sebzeleri plastiksiz al\n8. Aşırı ambalajlı ürünlerden kaçın\n9. İade edilebilir ambalaj seç\n10. İkinci el alışveriş yap`,
+    },
   },
   {
     id: "4",
     category: "Karbon İzi",
-    title: "Karbon İzini Necə Azaltmaq Olar",
-    readTime: "4 dəq",
-    summary: "Gündəlik vərdişlər vasitəsilə karbon emissiyasını azaltmaq",
-    content: `Karbon izi fərdin, ailənin və ya şirkətin fəaliyyəti nəticəsində atmosferə buraxdığı ümumi CO₂ miqdarıdır.\n\nAzərbaycanda orta şəxsin illik karbon izi ~5 tondur. Bu göstəricini 50% azaltmaq üçün aşağıdakı addımlar effektivdir:\n\n• Nəqliyyat: Avtomobil əvəzinə ictimai nəqliyyat və ya velosiped\n• Qida: Haftəda 1-2 dəfə ətsiz yemək\n• Enerji: LED lampalar, enerji effektiv cihazlar\n• Alış-veriş: İkinci əl, az plastik\n• Uçuş: Qısa məsafə üçün qatarı seçin`,
+    az: {
+      title: "Karbon İzini Necə Azaltmaq Olar",
+      readTime: "4 dəq",
+      summary: "Gündəlik vərdişlər vasitəsilə karbon emissiyasını azaltmaq",
+      content: `Karbon izi fərdin, ailənin və ya şirkətin fəaliyyəti nəticəsində atmosferə buraxdığı ümumi CO₂ miqdarıdır.\n\nOrta şəxsin illik karbon izi ~5 tondur. Bu göstəricini 50% azaltmaq üçün aşağıdakı addımlar effektivdir:\n\n• Nəqliyyat: Avtomobil əvəzinə ictimai nəqliyyat və ya velosiped\n• Qida: Həftədə 1-2 dəfə ətsiz yemək\n• Enerji: LED lampalar, enerji effektiv cihazlar\n• Alış-veriş: İkinci əl, az plastik\n• Uçuş: Qısa məsafə üçün qatarı seçin`,
+    },
+    en: {
+      title: "How to Reduce Your Carbon Footprint",
+      readTime: "4 min",
+      summary: "Reducing carbon emissions through daily habits",
+      content: `A carbon footprint is the total amount of CO₂ released into the atmosphere as a result of the activities of an individual, family, or company.\n\nThe average person's annual carbon footprint is around 5 tonnes. These steps are effective at reducing it by 50%:\n\n• Transport: Use public transport or a bicycle instead of a car\n• Food: Eat meat-free meals 1–2 times per week\n• Energy: Use LED bulbs and energy-efficient appliances\n• Shopping: Buy second-hand, use less plastic\n• Flights: Choose the train for short distances`,
+    },
+    tr: {
+      title: "Karbon İzinizi Nasıl Azaltırsınız",
+      readTime: "4 dk",
+      summary: "Günlük alışkanlıklarla karbon emisyonunu azaltmak",
+      content: `Karbon ayak izi, bir bireyin, ailenin veya şirketin faaliyetleri sonucunda atmosfere salınan toplam CO₂ miktarıdır.\n\nOrtalama bir kişinin yıllık karbon ayak izi yaklaşık 5 tondur. Bu miktarı %50 azaltmak için şu adımlar etkilidir:\n\n• Ulaşım: Araç yerine toplu taşıma veya bisiklet kullanın\n• Beslenme: Haftada 1-2 kez etsiz yemek yiyin\n• Enerji: LED ampul ve enerji verimli cihazlar kullanın\n• Alışveriş: İkinci el tercih edin, daha az plastik kullanın\n• Uçuş: Kısa mesafeler için tren seçin`,
+    },
   },
   {
     id: "5",
     category: "E-Tullantı",
-    title: "Batareyaları Düzgün Utilizasiya Et",
-    readTime: "2 dəq",
-    summary: "Köhnə batareyaların zərərli təsiri və doğru atılma üsulları",
-    content: `Batareyalar içərisindəki litium, kobalt, nikel kimi ağır metallar torpağa çox zərər verir. Bir batareya 1 m² torpağı 40 il boyunca çirkləndirir.\n\nBatareyaları heç vaxt adi zibil qutusuna atmayın. Yaxınlığınızdakı xüsusi batareya toplama məntəqələrini istifadə edin.\n\nLitium-ion batareyaların 95%-nin materialları yenidən istifadə edilə bilər. Geri dönüşüm vasitəsilə kobaltın 70%-i bərpa edilir.`,
+    az: {
+      title: "Batareyaları Düzgün Utilizasiya Et",
+      readTime: "2 dəq",
+      summary: "Köhnə batareyaların zərərli təsiri və doğru atılma üsulları",
+      content: `Batareyalar içərisindəki litium, kobalt, nikel kimi ağır metallar torpağa çox zərər verir. Bir batareya 1 m² torpağı 40 il boyunca çirkləndirir.\n\nBatareyaları heç vaxt adi zibil qutusuna atmayın. Yaxınlığınızdakı xüsusi batareya toplama məntəqələrini istifadə edin.\n\nLitium-ion batareyaların 95%-nin materialları yenidən istifadə edilə bilər. Geri dönüşüm vasitəsilə kobaltın 70%-i bərpa edilir.`,
+    },
+    en: {
+      title: "Dispose of Batteries Properly",
+      readTime: "2 min",
+      summary: "The harmful effects of old batteries and correct disposal methods",
+      content: `Heavy metals inside batteries — such as lithium, cobalt, and nickel — are highly damaging to soil. A single battery can contaminate 1 m² of soil for up to 40 years.\n\nNever throw batteries into regular rubbish bins. Use the dedicated battery collection points near you.\n\n95% of the materials in lithium-ion batteries can be reused. Through recycling, 70% of the cobalt can be recovered.`,
+    },
+    tr: {
+      title: "Pilleri Doğru Şekilde Atın",
+      readTime: "2 dk",
+      summary: "Eski pillerin zararlı etkileri ve doğru atma yöntemleri",
+      content: `Pillerin içindeki lityum, kobalt ve nikel gibi ağır metaller toprağa büyük zarar verir. Tek bir pil, 1 m² toprağı 40 yıl boyunca kirletebilir.\n\nPilleri asla normal çöpe atmayın. Yakınındaki özel pil toplama noktalarını kullanın.\n\nLitium-iyon pillerdeki malzemelerin %95'i yeniden kullanılabilir. Geri dönüşüm sayesinde kobaltın %70'i geri kazanılabilir.`,
+    },
   },
 ];
