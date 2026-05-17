@@ -18,7 +18,12 @@
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/icon.png",
+      "lang": "az",
+      "title": "EcoTrack — Karbon İzi İzləyici",
+      "description": "EcoTrack ilə gündəlik karbon izinizi izləyin, e-tullantıları idarə edin və ekoloji vərdişlər qazanın. iOS və Android üçün mövcuddur.",
+      "themeColor": "#2D7A4F",
+      "backgroundColor": "#2D7A4F"
     },
     "plugins": [
       [
