@@ -81,6 +81,46 @@ function serveLandingPage(req, res, landingPageTemplate, appName) {
   res.end(html);
 }
 
+function serveRobotsTxt(req, res) {
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const protocol = forwardedProto || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers["host"];
+  const baseUrl = `${protocol}://${host}`;
+
+  const content = [
+    "User-agent: *",
+    "Allow: /",
+    "",
+    `Sitemap: ${baseUrl}/sitemap.xml`,
+  ].join("\n");
+
+  res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+  res.end(content);
+}
+
+function serveSitemapXml(req, res) {
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const protocol = forwardedProto || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers["host"];
+  const baseUrl = `${protocol}://${host}`;
+  const now = new Date().toISOString().split("T")[0];
+
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    "  <url>",
+    `    <loc>${baseUrl}/</loc>`,
+    `    <lastmod>${now}</lastmod>`,
+    "    <changefreq>monthly</changefreq>",
+    "    <priority>1.0</priority>",
+    "  </url>",
+    "</urlset>",
+  ].join("\n");
+
+  res.writeHead(200, { "content-type": "application/xml; charset=utf-8" });
+  res.end(xml);
+}
+
 function serveStaticFile(urlPath, res) {
   const safePath = path.normalize(urlPath).replace(/^(\.\.(\/|\\|$))+/, "");
   const filePath = path.join(STATIC_ROOT, safePath);
@@ -113,6 +153,14 @@ const server = http.createServer((req, res) => {
 
   if (basePath && pathname.startsWith(basePath)) {
     pathname = pathname.slice(basePath.length) || "/";
+  }
+
+  if (pathname === "/robots.txt") {
+    return serveRobotsTxt(req, res);
+  }
+
+  if (pathname === "/sitemap.xml") {
+    return serveSitemapXml(req, res);
   }
 
   if (pathname === "/" || pathname === "/manifest") {
